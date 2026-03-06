@@ -56,6 +56,7 @@
             registerSocket();
         }
         bindEvents();
+        setupMobileKeyboard();
         requestNotifPermission();
         applyAccentColor();
         applyFontStyle();
@@ -885,6 +886,47 @@
     function autoResize() {
         msgInput.style.height = 'auto';
         msgInput.style.height = Math.min(msgInput.scrollHeight, 120) + 'px';
+    }
+
+    /* ═══════════════════════════════════════════════════════════════
+       MOBILE KEYBOARD HANDLING
+       ═══════════════════════════════════════════════════════════════ */
+    function setupMobileKeyboard() {
+        // Use visualViewport API to detect virtual keyboard
+        if (window.visualViewport) {
+            let prevHeight = window.visualViewport.height;
+            window.visualViewport.addEventListener('resize', function () {
+                var vv = window.visualViewport;
+                var heightDiff = prevHeight - vv.height;
+                var isKeyboardOpen = heightDiff > 100;
+                document.body.classList.toggle('keyboard-open', isKeyboardOpen);
+                if (isKeyboardOpen) {
+                    // Adjust chat-app height so input bar stays visible
+                    var chatAppEl = document.getElementById('chat-app');
+                    if (chatAppEl) {
+                        chatAppEl.style.height = vv.height - (parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--nav-h')) || 52) + 'px';
+                    }
+                    scrollToBottom();
+                } else {
+                    var chatAppEl = document.getElementById('chat-app');
+                    if (chatAppEl) chatAppEl.style.height = '';
+                }
+                prevHeight = vv.height;
+            });
+        }
+
+        // Focus input → always scroll to bottom after a short delay
+        msgInput.addEventListener('focus', function () {
+            setTimeout(scrollToBottom, 300);
+        });
+
+        // Handle "Go"/"Send" action on mobile virtual keyboard
+        msgInput.addEventListener('keypress', function (e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+            }
+        });
     }
 
     /* ═══════════════════════════════════════════════════════════════
