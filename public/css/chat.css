@@ -48,7 +48,7 @@ input, textarea { font: inherit; color: var(--text); touch-action: manipulation;
 /* ══════════════════════════════════════════════════════════════
    SETUP SCREEN
    ══════════════════════════════════════════════════════════════ */
-.setup-screen { height: calc(100vh - var(--nav-h)); height: calc(100dvh - var(--nav-h)); display: flex; align-items: center; justify-content: center; padding: 20px; background: linear-gradient(135deg, var(--bg) 0%, rgba(99,102,241,.05) 100%); }
+.setup-screen { height: calc(100vh - var(--nav-h) - var(--nav-bottom-h, 68px)); height: calc(100dvh - var(--nav-h) - var(--nav-bottom-h, 68px)); display: flex; align-items: center; justify-content: center; padding: 20px; background: linear-gradient(135deg, var(--bg) 0%, rgba(99,102,241,.05) 100%); }
 .setup-card {
     background: var(--bg2); border-radius: 24px; padding: 44px 40px; max-width: 440px; width: 100%;
     box-shadow: var(--shadow-lg); text-align: center;
@@ -96,7 +96,7 @@ input, textarea { font: inherit; color: var(--text); touch-action: manipulation;
 /* ══════════════════════════════════════════════════════════════
    CHAT APP LAYOUT
    ══════════════════════════════════════════════════════════════ */
-.chat-app { display: flex; height: calc(100vh - var(--nav-h)); height: calc(100dvh - var(--nav-h)); overflow: hidden; }
+.chat-app { display: flex; height: calc(100vh - var(--nav-h) - var(--nav-bottom-h, 68px)); height: calc(100dvh - var(--nav-h) - var(--nav-bottom-h, 68px)); overflow: hidden; }
 
 /* ── SIDEBAR ─────────────────────────────────────────────────── */
 .sidebar {
