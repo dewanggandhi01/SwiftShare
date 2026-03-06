@@ -72,8 +72,9 @@
     function saveUser() { localStorage.setItem('swiftchat-user', JSON.stringify(me)); }
 
     function loadDarkMode() {
-        darkMode = localStorage.getItem('swiftchat-dark') === '1';
-        if (darkMode) document.body.classList.add('dark');
+        const stored = localStorage.getItem('swiftchat-dark');
+        darkMode = stored === null ? true : stored === '1';
+        document.body.classList.toggle('dark', darkMode);
     }
 
     function requestNotifPermission() {
