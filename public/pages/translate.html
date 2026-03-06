@@ -9,23 +9,28 @@
     <link rel="dns-prefetch" href="https://cdnjs.cloudflare.com">
     <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/nav.css">
     <link rel="stylesheet" href="/css/translate.css">
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌐</text></svg>">
 </head>
 <body>
 
 <!-- Navigation -->
-<nav class="main-nav">
+<nav class="main-nav" id="main-nav">
     <div class="nav-inner">
         <a href="/" class="nav-brand"><span class="brand-icon">⚡</span> SwiftDrop</a>
         <button class="nav-toggle" id="nav-toggle" aria-label="Menu">
             <span></span><span></span><span></span>
         </button>
         <div class="nav-links" id="nav-links">
-            <a href="/" class="nav-link">📤 File Transfer</a>
-            <a href="/pdf" class="nav-link">📄 PDF Toolkit</a>
-            <a href="/chat" class="nav-link">💬 Chat</a>
-            <a href="/translate" class="nav-link active">🌐 Translate</a>
+            <a href="/" class="nav-link">File Transfer</a>
+            <a href="/pdf" class="nav-link">PDF Toolkit</a>
+            <a href="/chat" class="nav-link">Chat</a>
+            <a href="/translate" class="nav-link active">Translate</a>
+            <a href="/#pricing" class="nav-link">Pricing</a>
+        </div>
+        <div class="nav-actions">
+            <a href="/" class="btn btn-nav">Get Started</a>
         </div>
     </div>
 </nav>
@@ -203,6 +208,9 @@
 document.getElementById('nav-toggle')?.addEventListener('click', () => {
     document.getElementById('nav-links')?.classList.toggle('open');
 });
+document.querySelectorAll('.nav-link').forEach(l => l.addEventListener('click', () => {
+    document.getElementById('nav-links')?.classList.remove('open');
+}));
 </script>
 </body>
 </html>
