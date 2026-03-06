@@ -19,10 +19,18 @@ const chatStorage = multer.diskStorage({
 });
 const chatUpload = multer({ storage: chatStorage, limits: { fileSize: config.MAX_CHAT_FILE } });
 
-router.post('/upload', chatUpload.single('file'), (req, res) => {
-    if (!req.file) return res.status(400).json({ error: 'No file' });
-    const url = '/chat-uploads/' + req.file.filename;
-    res.json({ url, name: req.file.originalname, size: req.file.size });
+router.post('/upload', (req, res, next) => {
+    chatUpload.single('file')(req, res, (err) => {
+        if (err) {
+            if (err.code === 'LIMIT_FILE_SIZE') {
+                return res.status(413).json({ error: 'File too large. Maximum size is 25 MB.' });
+            }
+            return res.status(500).json({ error: 'Upload failed: ' + err.message });
+        }
+        if (!req.file) return res.status(400).json({ error: 'No file' });
+        const url = '/chat-uploads/' + req.file.filename;
+        res.json({ url, name: req.file.originalname, size: req.file.size });
+    });
 });
 
 router.get('/qr', async (req, res) => {

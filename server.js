@@ -1,6 +1,7 @@
 const express = require('express');
 const http = require('http');
 const { Server } = require('socket.io');
+const compression = require('compression');
 const path = require('path');
 const fs = require('fs');
 
@@ -16,6 +17,9 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server);
 
+// ── Compression ────────────────────────────────────────────────────────
+app.use(compression());
+
 // ── Security headers ───────────────────────────────────────────────────
 app.use((_req, res, next) => {
     res.setHeader('X-Content-Type-Options', 'nosniff');
@@ -24,8 +28,11 @@ app.use((_req, res, next) => {
     next();
 });
 
-// ── Static assets ──────────────────────────────────────────────────────
-app.use(express.static(path.join(__dirname, 'public')));
+// ── Static assets (with cache headers) ─────────────────────────────────
+app.use(express.static(path.join(__dirname, 'public'), {
+    maxAge: '7d',
+    etag: true
+}));
 app.use('/chat-uploads', express.static(config.CHAT_UPLOAD_DIR));
 app.use(express.json());
 
