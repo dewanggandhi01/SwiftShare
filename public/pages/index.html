@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SwiftDrop – Instant File Sharing</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
+</head>
+<body>
+
+<!-- ── Navigation ──────────────────────────────────────────────────── -->
+<nav class="main-nav">
+    <div class="container nav-inner">
+        <a href="/" class="nav-brand"><span class="brand-icon">⚡</span> SwiftDrop</a>
+        <button class="nav-toggle" id="nav-toggle" aria-label="Menu">
+            <span></span><span></span><span></span>
+        </button>
+        <div class="nav-links" id="nav-links">
+            <a href="/" class="nav-link active">📤 File Transfer</a>
+            <a href="/pdf" class="nav-link">📄 PDF Toolkit</a>
+            <a href="/chat" class="nav-link">💬 Chat</a>
+            <a href="/translate" class="nav-link">🌐 Translate</a>
+        </div>
+    </div>
+</nav>
+
+<!-- ── Landing Hero ───────────────────────────────────────────────── -->
+<section class="landing-hero">
+    <div class="hero-glow hero-glow-1"></div>
+    <div class="hero-glow hero-glow-2"></div>
+    <div class="container landing-inner">
+        <div class="landing-badge">✨ No sign-up required</div>
+        <h1 class="landing-title">All your digital tools<br><span class="gradient-text">in one place</span></h1>
+        <p class="landing-desc">Transfer files, edit PDFs, chat, and translate instantly.<br>Fast, secure, and free.</p>
+        <div class="landing-actions">
+            <a href="#main-card" class="btn btn-primary btn-lg landing-cta">🚀 Start Sharing</a>
+            <a href="#features" class="btn btn-ghost btn-lg">Explore Tools ↓</a>
+        </div>
+        <div class="trust-row">
+            <div class="trust-item">🔒 End-to-end encrypted</div>
+            <div class="trust-item">🗑️ Files auto-delete</div>
+            <div class="trust-item">👤 No account needed</div>
+        </div>
+    </div>
+</section>
+
+<!-- ── Header ─────────────────────────────────────────────────────── -->
+<header>
+    <div class="container">
+        <div class="logo">
+            <span class="logo-icon">⚡</span>
+            <h1>SwiftDrop</h1>
+        </div>
+        <p class="tagline">Share files instantly across any device. No sign-up required.</p>
+    </div>
+</header>
+
+<!-- ── Main Card ──────────────────────────────────────────────────── -->
+<main class="container" id="main-card">
+    <div class="card main-card">
+
+        <!-- Tabs -->
+        <div class="tabs">
+            <button class="tab active" data-tab="send">
+                <span class="tab-icon">📤</span> Send
+            </button>
+            <button class="tab" data-tab="receive">
+                <span class="tab-icon">📥</span> Receive
+            </button>
+        </div>
+
+        <!-- ════ SEND TAB ════ -->
+        <div class="tab-content active" id="send-tab">
+
+            <!-- Drop zone -->
+            <div class="drop-zone" id="drop-zone">
+                <input type="file" id="file-input" multiple hidden>
+                <div class="drop-icon">📁</div>
+                <p class="drop-text">Drag &amp; drop files here</p>
+                <p class="drop-subtext">or <button class="browse-btn" id="browse-btn">browse files</button></p>
+                <p class="drop-hint">Any file type &bull; No size limit &bull; Multiple files supported</p>
+            </div>
+
+            <!-- Selected files -->
+            <div class="file-list" id="file-list" hidden>
+                <h3>Selected Files <span class="file-count" id="file-count"></span></h3>
+                <ul id="files-ul"></ul>
+                <div class="file-list-footer">
+                    <span class="total-size" id="total-size"></span>
+                    <button class="btn btn-sm" id="add-more-btn">+ Add More</button>
+                    <button class="btn btn-sm btn-danger" id="clear-btn">Clear All</button>
+                </div>
+            </div>
+
+            <!-- Share button -->
+            <button class="btn btn-primary btn-lg" id="share-btn" hidden>
+                🚀 Share Files
+            </button>
+
+            <!-- Progress -->
+            <div class="progress-section" id="progress-section" hidden>
+                <div class="progress-bar"><div class="progress-fill" id="progress-fill"></div></div>
+                <p class="progress-text" id="progress-text">Uploading… 0 %</p>
+            </div>
+
+            <!-- Results -->
+            <div class="results" id="results" hidden>
+                <h3 class="results-title">✅ Files Ready to Share!</h3>
+
+                <!-- 6-digit code -->
+                <div class="result-section">
+                    <div class="result-header">
+                        <span class="result-icon">🔑</span>
+                        <h4>6-Digit Code</h4>
+                        <span class="badge badge-warning">Expires in <span id="code-countdown">10:00</span></span>
+                    </div>
+                    <div class="code-display" id="code-display"></div>
+                    <button class="btn btn-copy" data-copy="code">📋 Copy Code</button>
+                    <p class="result-hint">Share this code with the receiver</p>
+                </div>
+
+                <div class="divider"></div>
+
+                <!-- Link -->
+                <div class="result-section">
+                    <div class="result-header">
+                        <span class="result-icon">🔗</span>
+                        <h4>Share Link</h4>
+                        <span class="badge">Valid for 48 hours</span>
+                    </div>
+                    <div class="link-display">
+                        <input type="text" id="link-display" readonly>
+                        <button class="btn btn-copy" data-copy="link">📋 Copy</button>
+                    </div>
+                    <p class="result-hint">Send this link to one or multiple people</p>
+                </div>
+
+                <div class="divider"></div>
+
+                <!-- QR code -->
+                <div class="result-section">
+                    <div class="result-header">
+                        <span class="result-icon">📱</span>
+                        <h4>QR Code</h4>
+                    </div>
+                    <div class="qr-container">
+                        <img id="qr-image" alt="QR Code">
+                    </div>
+                    <p class="result-hint">Scan to download on any device</p>
+                </div>
+
+                <div class="divider"></div>
+
+                <!-- P2P status -->
+                <div class="p2p-status" id="p2p-status">
+                    <span class="status-dot"></span>
+                    <span>Waiting for receiver… Stay on this page for direct P2P transfer</span>
+                </div>
+
+                <button class="btn btn-primary btn-lg" id="new-transfer-btn">
+                    ➕ New Transfer
+                </button>
+            </div>
+        </div>
+
+        <!-- ════ RECEIVE TAB ════ -->
+        <div class="tab-content" id="receive-tab">
+
+            <div class="receive-section" id="receive-section">
+                <!-- Code input -->
+                <div class="receive-form">
+                    <label for="code-input">Enter 6-Digit Code</label>
+                    <div class="code-input-group">
+                        <input type="text" id="code-input" maxlength="6"
+                               placeholder="000000" autocomplete="off"
+                               pattern="[0-9]*" inputmode="numeric">
+                        <button class="btn btn-primary" id="receive-btn">
+                            📥 Receive
+                        </button>
+                    </div>
+                </div>
+
+                <div class="divider-text">or</div>
+
+                <!-- Link input -->
+                <div class="receive-form">
+                    <label for="link-input">Paste Share Link</label>
+                    <div class="code-input-group">
+                        <input type="text" id="link-input" placeholder="Paste link here">
+                        <button class="btn btn-primary" id="receive-link-btn">
+                            📥 Receive
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- File info (shown after lookup) -->
+            <div class="file-info" id="file-info" hidden>
+                <h3>📦 Files Available</h3>
+                <ul id="received-files-list"></ul>
+                <div class="file-info-footer">
+                    <span id="received-total-size"></span>
+                    <span id="received-downloads"></span>
+                </div>
+                <div class="p2p-receive-status" id="p2p-receive-status" hidden>
+                    <span class="status-dot active"></span>
+                    <span>Direct P2P transfer available — faster download!</span>
+                </div>
+                <button class="btn btn-primary btn-lg" id="download-btn">
+                    ⬇️ Download Files
+                </button>
+                <button class="btn btn-sm" id="back-btn" style="margin-top:12px;width:100%;justify-content:center;">
+                    ← Back
+                </button>
+            </div>
+        </div>
+    </div>
+</main>
+
+<!-- ── Features ───────────────────────────────────────────────────── -->
+<section class="features container" id="features">
+    <div class="section-header">
+        <h2>Why SwiftDrop?</h2>
+        <p class="section-subtitle">Built for speed, security, and simplicity</p>
+    </div>
+    <div class="features-grid">
+        <div class="feature-card">
+            <span class="feature-icon">⚡</span>
+            <h3>Lightning Fast</h3>
+            <p>Optimized transfer speeds with optional peer-to-peer technology.</p>
+        </div>
+        <div class="feature-card">
+            <span class="feature-icon">🔒</span>
+            <h3>Secure &amp; Encrypted</h3>
+            <p>256-bit encryption keeps your files safe during every transfer.</p>
+        </div>
+        <div class="feature-card">
+            <span class="feature-icon">🌍</span>
+            <h3>Cross-Platform</h3>
+            <p>Works on any device with a browser — phone, tablet, PC, Mac, Linux.</p>
+        </div>
+        <div class="feature-card">
+            <span class="feature-icon">📦</span>
+            <h3>No Size Limit</h3>
+            <p>Send large videos, datasets, or entire project folders with ease.</p>
+        </div>
+        <div class="feature-card">
+            <span class="feature-icon">👤</span>
+            <h3>No Account Needed</h3>
+            <p>Start sharing instantly. Zero registration, zero hassle.</p>
+        </div>
+        <div class="feature-card">
+            <span class="feature-icon">📱</span>
+            <h3>3 Ways to Share</h3>
+            <p>Use a 6-digit code, shareable link, or QR code — your choice.</p>
+        </div>
+    </div>
+</section>
+
+<!-- ── Footer ─────────────────────────────────────────────────────── -->
+<footer class="site-footer">
+    <div class="container footer-grid">
+        <div class="footer-col footer-brand">
+            <a href="/" class="footer-logo"><span class="brand-icon">⚡</span> SwiftDrop</a>
+            <p>All your digital tools in one place. Fast, secure, and free.</p>
+        </div>
+        <div class="footer-col">
+            <h4>Tools</h4>
+            <a href="/">File Transfer</a>
+            <a href="/pdf">PDF Toolkit</a>
+            <a href="/chat">SwiftChat</a>
+            <a href="/translate">Translate</a>
+        </div>
+        <div class="footer-col">
+            <h4>Features</h4>
+            <a href="#features">Peer-to-Peer</a>
+            <a href="#features">Encryption</a>
+            <a href="#features">No Sign-up</a>
+            <a href="#features">Cross-Platform</a>
+        </div>
+    </div>
+    <div class="container footer-bottom">
+        <p>&copy; 2025 SwiftDrop — Fast &amp; Secure File Sharing</p>
+    </div>
+</footer>
+
+<script src="/socket.io/socket.io.js"></script>
+<script src="/js/app.js"></script>
+<script>
+document.getElementById('nav-toggle')?.addEventListener('click', () => {
+    document.getElementById('nav-links')?.classList.toggle('open');
+});
+</script>
+</body>
+</html>

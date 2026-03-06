@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDF Toolkit – All-in-One PDF Tools</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/pdf.css">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📄</text></svg>">
+</head>
+<body>
+
+<!-- Navigation -->
+<nav class="main-nav">
+    <div class="nav-inner">
+        <a href="/" class="nav-brand"><span class="brand-icon">⚡</span> SwiftDrop</a>
+        <button class="nav-toggle" id="nav-toggle" aria-label="Menu">
+            <span></span><span></span><span></span>
+        </button>
+        <div class="nav-links" id="nav-links">
+            <a href="/" class="nav-link">📤 File Transfer</a>
+            <a href="/pdf" class="nav-link active">📄 PDF Toolkit</a>
+            <a href="/chat" class="nav-link">💬 Chat</a>
+            <a href="/translate" class="nav-link">🌐 Translate</a>
+        </div>
+    </div>
+</nav>
+
+<!-- Header -->
+<header class="pdf-header">
+    <div class="pdf-badge">📄 28 tools, 100% in-browser</div>
+    <h1><span class="gradient-text">PDF Toolkit</span></h1>
+    <p class="subtitle">Edit, convert, compress, merge, sign & more — all processing happens locally.</p>
+</header>
+
+<!-- Main Content -->
+<main class="main-container">
+    <!-- Tool Grid -->
+    <div id="tools-grid"></div>
+
+    <!-- Tool Workspace (shown when a tool is selected) -->
+    <div id="tool-workspace" hidden>
+        <button class="btn-back" id="ws-back">← Back to All Tools</button>
+        <div class="ws-header">
+            <span class="ws-icon" id="ws-icon"></span>
+            <div>
+                <h2 id="ws-title"></h2>
+                <p id="ws-desc"></p>
+            </div>
+        </div>
+        <div class="ws-body" id="ws-body"></div>
+    </div>
+</main>
+
+<!-- Footer -->
+<footer class="pdf-footer">
+    <div class="footer-inner">
+        <p>PDF Toolkit — All processing happens in your browser. Your files never leave your device.</p>
+        <div class="footer-links">
+            <a href="/">File Transfer</a>
+            <a href="/chat">Chat</a>
+            <a href="/translate">Translate</a>
+        </div>
+    </div>
+</footer>
+
+<!-- CDN Libraries -->
+<script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/mammoth@1.8.0/mammoth.browser.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+<script src="/js/pdf-tools.js"></script>
+<script>
+document.getElementById('nav-toggle')?.addEventListener('click', () => {
+    document.getElementById('nav-links')?.classList.toggle('open');
+});
+</script>
+</body>
+</html>

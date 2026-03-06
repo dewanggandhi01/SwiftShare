@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SwiftTranslate – Document & Text Translation</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/translate.css">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌐</text></svg>">
+</head>
+<body>
+
+<!-- Navigation -->
+<nav class="main-nav">
+    <div class="nav-inner">
+        <a href="/" class="nav-brand"><span class="brand-icon">⚡</span> SwiftDrop</a>
+        <button class="nav-toggle" id="nav-toggle" aria-label="Menu">
+            <span></span><span></span><span></span>
+        </button>
+        <div class="nav-links" id="nav-links">
+            <a href="/" class="nav-link">📤 File Transfer</a>
+            <a href="/pdf" class="nav-link">📄 PDF Toolkit</a>
+            <a href="/chat" class="nav-link">💬 Chat</a>
+            <a href="/translate" class="nav-link active">🌐 Translate</a>
+        </div>
+    </div>
+</nav>
+
+<!-- Main -->
+<div class="tr-container">
+    <!-- Header -->
+    <div class="tr-hero">
+        <div class="tr-badge">🌐 100+ languages supported</div>
+        <h1>SwiftTranslate</h1>
+        <p>Translate text, PDFs, images & documents instantly. Fast, accurate, and free.</p>
+    </div>
+
+    <!-- Input Tabs -->
+    <div class="tr-tabs">
+        <button class="tr-tab active" data-tab="text">📝 Text</button>
+        <button class="tr-tab" data-tab="file">📁 File Upload</button>
+        <button class="tr-tab" data-tab="batch">📚 Batch</button>
+        <button class="tr-tab" data-tab="history">📜 History</button>
+    </div>
+
+    <!-- Language Bar -->
+    <div class="tr-lang-bar">
+        <div class="tr-lang-group">
+            <label>From</label>
+            <select id="lang-from">
+                <option value="auto">🔍 Auto Detect</option>
+            </select>
+        </div>
+        <button class="tr-swap-btn" id="btn-swap-lang" title="Swap languages">⇄</button>
+        <div class="tr-lang-group">
+            <label>To</label>
+            <select id="lang-to"></select>
+        </div>
+    </div>
+
+    <!-- Recent Languages -->
+    <div class="tr-recent-langs" id="recent-langs" hidden>
+        <span class="tr-recent-label">Recent:</span>
+        <div id="recent-lang-chips"></div>
+    </div>
+
+    <!-- Tab: Text -->
+    <div class="tr-panel" id="panel-text">
+        <div class="tr-text-area">
+            <div class="tr-input-side">
+                <div class="tr-input-header">
+                    <span>Original Text</span>
+                    <span class="tr-char-count" id="char-count">0 / 50,000</span>
+                </div>
+                <textarea id="input-text" placeholder="Type or paste text here..." maxlength="50000"></textarea>
+                <div class="tr-input-actions">
+                    <button class="tr-btn-icon" id="btn-clear-input" title="Clear">✕</button>
+                    <button class="tr-btn-icon" id="btn-paste" title="Paste from clipboard">📋</button>
+                </div>
+            </div>
+            <div class="tr-output-side">
+                <div class="tr-input-header">
+                    <span>Translation</span>
+                    <div class="tr-output-actions">
+                        <button class="tr-btn-icon" id="btn-copy-output" title="Copy">📋</button>
+                        <button class="tr-btn-icon" id="btn-regenerate" title="Regenerate">🔄</button>
+                    </div>
+                </div>
+                <div class="tr-output-box" id="output-text" contenteditable="true"></div>
+                <div class="tr-output-edit-hint">Click to edit translation</div>
+            </div>
+        </div>
+        <div class="tr-translate-row">
+            <button class="tr-btn-primary" id="btn-translate-text">🌐 Translate</button>
+            <select id="tone-select">
+                <option value="">Default Tone</option>
+                <option value="formal">Formal</option>
+                <option value="casual">Casual</option>
+            </select>
+        </div>
+    </div>
+
+    <!-- Tab: File Upload -->
+    <div class="tr-panel" id="panel-file" hidden>
+        <div class="tr-upload-zone" id="file-dropzone">
+            <input type="file" id="file-input" hidden accept=".pdf,.png,.jpg,.jpeg,.gif,.bmp,.webp,.docx,.doc,.txt">
+            <div class="tr-upload-icon">📄</div>
+            <p class="tr-upload-text">Drop a file here or click to browse</p>
+            <p class="tr-upload-sub">PDF (50MB) · Image (10MB) · DOCX · TXT</p>
+            <div class="tr-upload-types">
+                <span class="tr-file-badge">PDF</span>
+                <span class="tr-file-badge">Image</span>
+                <span class="tr-file-badge">DOCX</span>
+                <span class="tr-file-badge">TXT</span>
+            </div>
+        </div>
+        <div id="file-info" class="tr-file-info" hidden>
+            <div class="tr-file-card">
+                <span class="tr-file-icon" id="file-icon">📄</span>
+                <div class="tr-file-details">
+                    <span class="tr-file-name" id="file-name"></span>
+                    <span class="tr-file-size" id="file-size"></span>
+                </div>
+                <button class="tr-btn-icon" id="btn-remove-file" title="Remove">✕</button>
+            </div>
+            <div class="tr-progress" id="file-progress" hidden>
+                <div class="tr-progress-bar"><div class="tr-progress-fill" id="progress-fill"></div></div>
+                <span class="tr-progress-text" id="progress-text">Extracting text...</span>
+            </div>
+            <button class="tr-btn-primary" id="btn-translate-file">🌐 Translate File</button>
+        </div>
+        <!-- File result -->
+        <div id="file-result" class="tr-result-panel" hidden>
+            <div class="tr-result-header">
+                <h3>📄 Translation Result</h3>
+                <div class="tr-result-actions">
+                    <button class="tr-btn-sm" id="btn-dl-pdf" title="Download PDF">📄 PDF</button>
+                    <button class="tr-btn-sm" id="btn-dl-txt" title="Download TXT">📝 TXT</button>
+                    <button class="tr-btn-sm" id="btn-copy-result" title="Copy">📋 Copy</button>
+                </div>
+            </div>
+            <div class="tr-side-by-side">
+                <div class="tr-sbs-col">
+                    <div class="tr-sbs-header">Original</div>
+                    <div class="tr-sbs-content" id="file-original"></div>
+                </div>
+                <div class="tr-sbs-col">
+                    <div class="tr-sbs-header">Translated</div>
+                    <div class="tr-sbs-content" id="file-translated" contenteditable="true"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tab: Batch -->
+    <div class="tr-panel" id="panel-batch" hidden>
+        <div class="tr-upload-zone" id="batch-dropzone">
+            <input type="file" id="batch-input" hidden multiple accept=".pdf,.png,.jpg,.jpeg,.gif,.bmp,.webp,.docx,.doc,.txt">
+            <div class="tr-upload-icon">📚</div>
+            <p class="tr-upload-text">Drop multiple files here or click to browse</p>
+            <p class="tr-upload-sub">Translate up to 10 files at once</p>
+        </div>
+        <div id="batch-list" class="tr-batch-list" hidden></div>
+        <button class="tr-btn-primary" id="btn-translate-batch" hidden>🌐 Translate All Files</button>
+        <div id="batch-results" hidden></div>
+    </div>
+
+    <!-- Tab: History -->
+    <div class="tr-panel" id="panel-history" hidden>
+        <div class="tr-history-header">
+            <h3>📜 Translation History</h3>
+            <button class="tr-btn-sm tr-btn-danger" id="btn-clear-history">🗑️ Clear All</button>
+        </div>
+        <div id="history-list" class="tr-history-list">
+            <p class="tr-empty">No translations yet</p>
+        </div>
+    </div>
+</div>
+
+<!-- Loading overlay -->
+<div class="tr-loading" id="loading-overlay" hidden>
+    <div class="tr-loading-inner">
+        <div class="tr-spinner"></div>
+        <p id="loading-text">Translating...</p>
+    </div>
+</div>
+
+<!-- Tesseract.js for OCR -->
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+<!-- Mammoth.js for DOCX -->
+<script src="https://cdn.jsdelivr.net/npm/mammoth@1.6.0/mammoth.browser.min.js"></script>
+<!-- PDF.js for PDF text extraction -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<!-- pdf-lib for PDF creation -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
+<script>pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';</script>
+<script src="/js/translate.js"></script>
+<script>
+document.getElementById('nav-toggle')?.addEventListener('click', () => {
+    document.getElementById('nav-links')?.classList.toggle('open');
+});
+</script>
+</body>
+</html>
