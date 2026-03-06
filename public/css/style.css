@@ -726,8 +726,6 @@ body {
 }
 
 @media (max-width: 768px) {
-    .nav-link { padding: 12px 14px; border-radius: 8px; }
-
     .hero { padding: 120px 0 60px; min-height: auto; }
     .hero-title { font-size: clamp(2rem, 7vw, 2.6rem); }
     .hero-desc { font-size: 1rem; }
