@@ -145,7 +145,7 @@ router.get('/download/:key', (req, res) => {
 
     // Multiple files → zip
     res.setHeader('Content-Type', 'application/zip');
-    res.setHeader('Content-Disposition', 'attachment; filename="swiftdrop-files.zip"');
+    res.setHeader('Content-Disposition', 'attachment; filename="debo-files.zip"');
 
     const archive = archiver('zip', { zlib: { level: 5 } });
     archive.on('error', () => res.status(500).end());

@@ -52,5 +52,5 @@ require('./src/socket')(io);
 
 // ── Start ──────────────────────────────────────────────────────────────
 server.listen(config.PORT, () => {
-    console.log(`\n  ⚡ SwiftDrop is running!\n  Local:  http://localhost:${config.PORT}\n`);
+    console.log(`\n  Ξ DΞBO is running!\n  Local:  http://localhost:${config.PORT}\n`);
 });

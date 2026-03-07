@@ -1713,7 +1713,7 @@
                 '<div class="stg-info-card">' +
                     '<p><strong>SwiftChat</strong> v1.0.0</p>' +
                     '<p>Built with ❤️ using Node.js, Socket.IO & vanilla JS.</p>' +
-                    '<p>© 2026 SwiftDrop. All rights reserved.</p>' +
+                    '<p>© 2026 DΞBO. All rights reserved.</p>' +
                 '</div>' +
             '</div>';
 

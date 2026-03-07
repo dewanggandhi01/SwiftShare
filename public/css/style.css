@@ -513,6 +513,17 @@ body {
 .feature-card h3 { font-size: 1.05rem; font-weight: 700; margin-bottom: 8px; }
 .feature-card p { color: var(--text-2); font-size: .88rem; line-height: 1.65; }
 
+.feature-card-hero {
+    border-color: rgba(99,102,241,.25);
+    background: linear-gradient(135deg, var(--bg-card) 0%, rgba(99,102,241,.06) 100%);
+    grid-column: span 1;
+}
+.feature-card-hero::before { opacity: 1; }
+.feature-card-hero .feature-icon-wrap {
+    width: 52px; height: 52px;
+    background: var(--accent); color: #fff;
+}
+
 /* ═══════════════════════════════════════════════════════════════════
    HOW IT WORKS
    ═══════════════════════════════════════════════════════════════════ */
