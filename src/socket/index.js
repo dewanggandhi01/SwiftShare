@@ -357,16 +357,22 @@ module.exports = function initSocket(io) {
                 return;
             }
 
+            // Get anonymous tags
+            const myEntry = randomLobby.get(uid);
+            const myTag = myEntry ? myEntry.tag : ('Stranger #' + generateChatCode().substring(0, 4));
+            const targetTag = targetEntry.tag;
+
             // Remove both from lobby
             randomLobby.delete(uid);
             randomLobby.delete(targetId);
             socket.leave('random-lobby');
 
-            // Create a chat room between them
+            // Create a random chat room
             const roomCode = generateChatCode();
             const room = {
                 code: roomCode,
                 users: [uid, targetId],
+                isRandom: true,
                 messages: [{
                     id: generateMsgId(),
                     roomCode: roomCode,
@@ -382,10 +388,16 @@ module.exports = function initSocket(io) {
             me.rooms.add(roomCode);
             targetUser.rooms.add(roomCode);
 
+            // Anonymous avatars for random chats
+            const anonAvatars = ['👤', '🎭', '🕶️', '🤿', '🥷'];
+            const myAnonAvatar = anonAvatars[Math.floor(Math.random() * anonAvatars.length)];
+            const targetAnonAvatar = anonAvatars[Math.floor(Math.random() * anonAvatars.length)];
+
             socket.join('chat:' + roomCode);
             socket.emit('chat:room-joined', {
                 code: roomCode,
-                peerUser: { id: targetUser.id, username: targetUser.username, avatar: targetUser.avatar, online: targetUser.online, lastSeen: targetUser.lastSeen },
+                isRandom: true,
+                peerUser: { id: targetUser.id, username: targetTag, avatar: targetAnonAvatar, online: targetUser.online, lastSeen: targetUser.lastSeen },
                 messages: room.messages
             });
 
@@ -397,7 +409,8 @@ module.exports = function initSocket(io) {
                     targetSocket.join('chat:' + roomCode);
                     targetSocket.emit('chat:room-joined', {
                         code: roomCode,
-                        peerUser: { id: me.id, username: me.username, avatar: me.avatar, online: me.online, lastSeen: me.lastSeen },
+                        isRandom: true,
+                        peerUser: { id: me.id, username: myTag, avatar: myAnonAvatar, online: me.online, lastSeen: me.lastSeen },
                         messages: room.messages
                     });
                     targetSocket.emit('random:matched');

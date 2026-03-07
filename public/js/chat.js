@@ -366,7 +366,8 @@
             messages: data.messages || [],
             unread: 0,
             pinned: false,
-            typing: false
+            typing: false,
+            isRandom: !!data.isRandom
         };
         renderChatList();
         saveRooms();
@@ -379,8 +380,9 @@
                 data[code] = {
                     code: rooms[code].code,
                     peerUser: rooms[code].peerUser,
-                    messages: rooms[code].messages.slice(-200), // keep last 200
-                    pinned: rooms[code].pinned
+                    messages: rooms[code].messages.slice(-200),
+                    pinned: rooms[code].pinned,
+                    isRandom: rooms[code].isRandom || false
                 };
             });
             localStorage.setItem('swiftchat-rooms-' + me.id, JSON.stringify(data));
@@ -393,7 +395,7 @@
             if (s) {
                 const data = JSON.parse(s);
                 Object.keys(data).forEach(code => {
-                    rooms[code] = { ...data[code], unread: 0, typing: false };
+                    rooms[code] = { ...data[code], unread: 0, typing: false, isRandom: data[code].isRandom || false };
                 });
             }
         } catch (e) { /* ignore */ }
@@ -566,7 +568,7 @@
        ═══════════════════════════════════════════════════════════════ */
     function renderChatList() {
         const search = ($('search-chats').value || '').toLowerCase();
-        const entries = Object.values(rooms).filter(r => {
+        const allEntries = Object.values(rooms).filter(r => {
             if (!r.peerUser) return false;
             if (search) {
                 const nameMatch = r.peerUser.username.toLowerCase().includes(search);
@@ -576,16 +578,24 @@
             return true;
         });
 
-        // Sort: pinned first, then by last message time
-        entries.sort((a, b) => {
-            if (a.pinned && !b.pinned) return -1;
-            if (!a.pinned && b.pinned) return 1;
-            const at = a.messages.length ? a.messages[a.messages.length - 1].timestamp : 0;
-            const bt = b.messages.length ? b.messages[b.messages.length - 1].timestamp : 0;
-            return bt - at;
-        });
+        const regularChats = allEntries.filter(r => !r.isRandom);
+        const randomChats = allEntries.filter(r => r.isRandom);
 
-        if (entries.length === 0) {
+        // Sort helper: pinned first, then by last message time
+        function sortChats(arr) {
+            arr.sort((a, b) => {
+                if (a.pinned && !b.pinned) return -1;
+                if (!a.pinned && b.pinned) return 1;
+                const at = a.messages.length ? a.messages[a.messages.length - 1].timestamp : 0;
+                const bt = b.messages.length ? b.messages[b.messages.length - 1].timestamp : 0;
+                return bt - at;
+            });
+            return arr;
+        }
+        sortChats(regularChats);
+        sortChats(randomChats);
+
+        if (allEntries.length === 0) {
             chatList.innerHTML = '';
             chatList.appendChild(emptyList);
             emptyList.style.display = '';
@@ -594,33 +604,51 @@
 
         emptyList.style.display = 'none';
         let html = '';
-        entries.forEach(r => {
-            const peer = r.peerUser;
-            const lastMsg = r.messages.filter(m => m.deleted !== 'me').slice(-1)[0];
-            let lastText = '';
-            if (r.typing) lastText = '<em style="color:var(--accent)">typing...</em>';
-            else if (lastMsg) {
-                if (lastMsg.deleted === 'everyone') lastText = '<em>Message deleted</em>';
-                else if (lastMsg.type === 'image') lastText = '🖼️ Photo';
-                else if (lastMsg.type === 'file') lastText = '📎 File';
-                else if (lastMsg.type === 'voice') lastText = '🎤 Voice';
-                else if (lastMsg.type === 'system') lastText = lastMsg.text || '';
-                else lastText = esc(lastMsg.text || '').substring(0, 40);
-                if (lastMsg.senderId === me.id) lastText = '✓ ' + lastText;
-            }
-            const time = lastMsg ? formatTime(lastMsg.timestamp) : '';
-            const active = currentRoom === r.code ? ' active' : '';
-            const pinned = r.pinned ? ' pinned' : '';
-            const pinIcon = r.pinned ? '<span class="pin-icon">📌</span>' : '';
-            const onlineDot = peer.online ? '<span class="online-dot"></span>' : '';
-            const badge = r.unread ? '<div class="chat-item-badge">' + r.unread + '</div>' : '';
 
-            html += '<div class="chat-item' + active + pinned + '" data-room="' + esc(r.code) + '">' +
-                '<div class="avatar">' + esc(peer.avatar || '😀') + onlineDot + '</div>' +
-                '<div class="chat-item-info"><div class="chat-item-name">' + esc(peer.username) + pinIcon + '</div>' +
-                '<div class="chat-item-last">' + lastText + '</div></div>' +
-                '<div class="chat-item-meta"><div class="chat-item-time">' + time + '</div>' + badge + '</div></div>';
-        });
+        // Render a list of chat items
+        function renderItems(items) {
+            var out = '';
+            items.forEach(r => {
+                const peer = r.peerUser;
+                const lastMsg = r.messages.filter(m => m.deleted !== 'me').slice(-1)[0];
+                let lastText = '';
+                if (r.typing) lastText = '<em style="color:var(--accent)">typing...</em>';
+                else if (lastMsg) {
+                    if (lastMsg.deleted === 'everyone') lastText = '<em>Message deleted</em>';
+                    else if (lastMsg.type === 'image') lastText = '🖼️ Photo';
+                    else if (lastMsg.type === 'file') lastText = '📎 File';
+                    else if (lastMsg.type === 'voice') lastText = '🎤 Voice';
+                    else if (lastMsg.type === 'system') lastText = lastMsg.text || '';
+                    else lastText = esc(lastMsg.text || '').substring(0, 40);
+                    if (lastMsg.senderId === me.id) lastText = '✓ ' + lastText;
+                }
+                const time = lastMsg ? formatTime(lastMsg.timestamp) : '';
+                const active = currentRoom === r.code ? ' active' : '';
+                const pinned = r.pinned ? ' pinned' : '';
+                const pinIcon = r.pinned ? '<span class="pin-icon">📌</span>' : '';
+                const onlineDot = peer.online ? '<span class="online-dot"></span>' : '';
+                const badge = r.unread ? '<div class="chat-item-badge">' + r.unread + '</div>' : '';
+
+                out += '<div class="chat-item' + active + pinned + '" data-room="' + esc(r.code) + '">' +
+                    '<div class="avatar">' + esc(peer.avatar || '😀') + onlineDot + '</div>' +
+                    '<div class="chat-item-info"><div class="chat-item-name">' + esc(peer.username) + pinIcon + '</div>' +
+                    '<div class="chat-item-last">' + lastText + '</div></div>' +
+                    '<div class="chat-item-meta"><div class="chat-item-time">' + time + '</div>' + badge + '</div></div>';
+            });
+            return out;
+        }
+
+        // Regular chats
+        if (regularChats.length > 0) {
+            html += renderItems(regularChats);
+        }
+
+        // Random chats — separate section
+        if (randomChats.length > 0) {
+            html += '<div class="chat-list-divider"><span>🎲 Random Chats</span></div>';
+            html += renderItems(randomChats);
+        }
+
         chatList.innerHTML = html;
         chatList.querySelectorAll('.chat-item').forEach(el => {
             el.addEventListener('click', () => openChat(el.dataset.room));
@@ -671,7 +699,10 @@
         if (!r || !r.peerUser) return;
         $('header-avatar').textContent = r.peerUser.avatar || '😀';
         $('header-name').textContent = r.peerUser.username;
-        if (r.peerUser.online) {
+        if (r.isRandom) {
+            $('header-status').textContent = 'Anonymous stranger';
+            $('header-status').style.color = 'var(--text3)';
+        } else if (r.peerUser.online) {
             $('header-status').textContent = 'online';
             $('header-status').style.color = 'var(--green)';
         } else if (r.peerUser.lastSeen) {
