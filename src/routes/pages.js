@@ -20,4 +20,8 @@ router.get('/translate', (_req, res) => {
     res.sendFile(path.join(PAGES_DIR, 'translate.html'));
 });
 
+router.get('/streamfinder', (_req, res) => {
+    res.sendFile(path.join(PAGES_DIR, 'streamfinder.html'));
+});
+
 module.exports = router;

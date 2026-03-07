@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create PDF – Document Scanner & PDF Generator</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/nav.css">
+    <link rel="stylesheet" href="/css/createpdf.css">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📄</text></svg>">
+</head>
+<body>
+
+<!-- ══ Top Navigation ═══════════════════════════════════════════════ -->
+<nav class="main-nav" id="main-nav">
+    <div class="nav-inner">
+        <a href="/" class="nav-brand"><span class="brand-icon">⚡</span> SwiftDrop</a>
+        <div class="nav-links" id="nav-links">
+            <a href="/" class="nav-link">File Transfer</a>
+            <a href="/pdf" class="nav-link">PDF Toolkit</a>
+            <a href="/create-pdf" class="nav-link active">📄 Create PDF</a>
+            <a href="/chat" class="nav-link">Chat</a>
+            <a href="/translate" class="nav-link">Translate</a>
+        </div>
+        <div class="nav-actions">
+            <button class="btn-nav" id="darkModeToggle" title="Toggle dark mode">🌙</button>
+        </div>
+    </div>
+</nav>
+
+<!-- ══ Bottom Navigation (mobile) ═══════════════════════════════════ -->
+<nav class="bottom-nav" aria-label="Mobile navigation">
+    <div class="bottom-nav-inner">
+        <a href="/" class="btm-link">
+            <span class="btm-icon"><svg viewBox="0 0 24 24"><path d="M3 9.5L12 3l9 6.5V20a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9.5z"/><path d="M9 21V12h6v9"/></svg></span>
+            <span class="btm-label">Home</span>
+        </a>
+        <a href="/pdf" class="btm-link">
+            <span class="btm-icon"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></span>
+            <span class="btm-label">PDF</span>
+        </a>
+        <a href="/create-pdf" class="btm-link active">
+            <span class="btm-icon"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 3v18"/><path d="M3 9h6"/><circle cx="15" cy="15" r="3"/><path d="M21 21l-2.2-2.2"/></svg></span>
+            <span class="btm-label">Scan</span>
+        </a>
+        <a href="/chat" class="btm-link">
+            <span class="btm-icon"><svg viewBox="0 0 24 24"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg></span>
+            <span class="btm-label">Chat</span>
+        </a>
+        <a href="/translate" class="btm-link">
+            <span class="btm-icon"><svg viewBox="0 0 24 24"><path d="M5 8l6 6"/><path d="M4 14l6-6 2-3"/><path d="M2 5h12"/><path d="M7 2h1"/><path d="M22 22l-5-10-5 10"/><path d="M14 18h6"/></svg></span>
+            <span class="btm-label">Translate</span>
+        </a>
+    </div>
+</nav>
+
+<!-- ══ App Container ════════════════════════════════════════════════ -->
+<div class="cpdf-app" id="cpdfApp">
+
+    <!-- ── Step 1: Upload / Capture ──────────────────────────────── -->
+    <section class="cpdf-upload-section" id="uploadSection">
+        <div class="cpdf-header">
+            <div class="cpdf-badge">📄 Document Scanner & PDF Generator</div>
+            <h1><span class="gradient-text">Create PDF</span></h1>
+            <p class="cpdf-subtitle">Scan documents, edit images, and generate professional PDFs — all in your browser.</p>
+        </div>
+
+        <div class="cpdf-upload-area" id="uploadArea">
+            <div class="cpdf-upload-zone" id="dropzone">
+                <div class="cpdf-upload-icon">
+                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                        <polyline points="17 8 12 3 7 8"/>
+                        <line x1="12" y1="3" x2="12" y2="15"/>
+                    </svg>
+                </div>
+                <h3>Drop images here</h3>
+                <p>or click to browse files</p>
+                <p class="cpdf-upload-hint">Supports JPG, PNG, WEBP, BMP, GIF · Up to 50 images</p>
+                <input type="file" id="fileInput" accept="image/*" multiple hidden>
+            </div>
+
+            <div class="cpdf-upload-actions">
+                <button class="cpdf-btn cpdf-btn-accent" id="browseBtn">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                    Upload Images
+                </button>
+                <button class="cpdf-btn cpdf-btn-glass" id="cameraBtn">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+                    Take Photo
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- ── Camera Modal ──────────────────────────────────────────── -->
+    <div class="cpdf-modal" id="cameraModal">
+        <div class="cpdf-modal-content cpdf-camera-modal">
+            <div class="cpdf-modal-header">
+                <h3>📷 Camera Capture</h3>
+                <button class="cpdf-modal-close" id="cameraClose">&times;</button>
+            </div>
+            <div class="cpdf-camera-wrap">
+                <video id="cameraVideo" autoplay playsinline></video>
+                <canvas id="cameraCanvas" hidden></canvas>
+            </div>
+            <div class="cpdf-camera-actions">
+                <button class="cpdf-btn cpdf-btn-accent cpdf-btn-capture" id="captureBtn">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="10"/></svg>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── Step 2: Editor ────────────────────────────────────────── -->
+    <section class="cpdf-editor-section" id="editorSection" hidden>
+        <div class="cpdf-editor-layout">
+            <!-- Sidebar: Page Thumbnails -->
+            <aside class="cpdf-sidebar" id="sidebar">
+                <div class="cpdf-sidebar-header">
+                    <h3>Pages <span class="cpdf-page-count" id="pageCount">0</span></h3>
+                    <button class="cpdf-btn-icon" id="addMoreBtn" title="Add more images">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                    </button>
+                    <input type="file" id="addMoreInput" accept="image/*" multiple hidden>
+                </div>
+                <div class="cpdf-thumbs" id="thumbList">
+                    <!-- Thumbnails rendered by JS -->
+                </div>
+            </aside>
+
+            <!-- Main Canvas Area -->
+            <div class="cpdf-canvas-area">
+                <div class="cpdf-toolbar" id="toolbar">
+                    <!-- Editing Tools -->
+                    <div class="cpdf-tool-group">
+                        <button class="cpdf-tool-btn" data-tool="crop" title="Crop">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6.13 1L6 16a2 2 0 0 0 2 2h15"/><path d="M1 6.13L16 6a2 2 0 0 1 2 2v15"/></svg>
+                            <span>Crop</span>
+                        </button>
+                        <button class="cpdf-tool-btn" data-tool="rotate-left" title="Rotate Left">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
+                            <span>Left</span>
+                        </button>
+                        <button class="cpdf-tool-btn" data-tool="rotate-right" title="Rotate Right">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.13-9.36L23 10"/></svg>
+                            <span>Right</span>
+                        </button>
+                        <button class="cpdf-tool-btn" data-tool="perspective" title="Perspective Correction">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4l4 16h8l4-16z"/></svg>
+                            <span>Perspective</span>
+                        </button>
+                    </div>
+                    <div class="cpdf-tool-divider"></div>
+                    <div class="cpdf-tool-group">
+                        <button class="cpdf-tool-btn" data-tool="brightness" title="Brightness & Contrast">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+                            <span>Adjust</span>
+                        </button>
+                        <button class="cpdf-tool-btn" data-tool="sharpen" title="Sharpen">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 19 21 12 17 5 21 12 2"/></svg>
+                            <span>Sharpen</span>
+                        </button>
+                    </div>
+                    <div class="cpdf-tool-divider"></div>
+                    <div class="cpdf-tool-group cpdf-filters-group">
+                        <button class="cpdf-tool-btn cpdf-filter-btn active" data-filter="original" title="Original">
+                            <span class="cpdf-filter-preview" style="background:linear-gradient(135deg,#667eea,#764ba2)"></span>
+                            <span>Original</span>
+                        </button>
+                        <button class="cpdf-tool-btn cpdf-filter-btn" data-filter="bw" title="Black & White (Document)">
+                            <span class="cpdf-filter-preview" style="background:linear-gradient(135deg,#333,#fff)"></span>
+                            <span>B&W</span>
+                        </button>
+                        <button class="cpdf-tool-btn cpdf-filter-btn" data-filter="enhance" title="Color Enhance">
+                            <span class="cpdf-filter-preview" style="background:linear-gradient(135deg,#f093fb,#f5576c)"></span>
+                            <span>Enhance</span>
+                        </button>
+                        <button class="cpdf-tool-btn cpdf-filter-btn" data-filter="grayscale" title="Grayscale">
+                            <span class="cpdf-filter-preview" style="background:linear-gradient(135deg,#868f96,#596164)"></span>
+                            <span>Gray</span>
+                        </button>
+                        <button class="cpdf-tool-btn cpdf-filter-btn" data-filter="highcontrast" title="High Contrast Scan">
+                            <span class="cpdf-filter-preview" style="background:linear-gradient(135deg,#000,#fff)"></span>
+                            <span>Hi-Con</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Adjustment Sliders Panel (shown when Adjust tool is active) -->
+                <div class="cpdf-adjust-panel" id="adjustPanel" hidden>
+                    <div class="cpdf-slider-row">
+                        <label>Brightness</label>
+                        <input type="range" id="brightnessSlider" min="-100" max="100" value="0">
+                        <span class="cpdf-slider-val" id="brightnessVal">0</span>
+                    </div>
+                    <div class="cpdf-slider-row">
+                        <label>Contrast</label>
+                        <input type="range" id="contrastSlider" min="-100" max="100" value="0">
+                        <span class="cpdf-slider-val" id="contrastVal">0</span>
+                    </div>
+                    <div class="cpdf-slider-row">
+                        <button class="cpdf-btn cpdf-btn-sm" id="resetAdjust">Reset</button>
+                        <button class="cpdf-btn cpdf-btn-accent cpdf-btn-sm" id="applyAdjust">Apply</button>
+                    </div>
+                </div>
+
+                <!-- Crop Overlay (shown when crop tool is active) -->
+                <div class="cpdf-crop-overlay" id="cropOverlay" hidden>
+                    <div class="cpdf-crop-actions">
+                        <button class="cpdf-btn cpdf-btn-accent cpdf-btn-sm" id="applyCrop">Apply Crop</button>
+                        <button class="cpdf-btn cpdf-btn-sm" id="cancelCrop">Cancel</button>
+                    </div>
+                </div>
+
+                <!-- Main Preview Canvas -->
+                <div class="cpdf-preview-wrap" id="previewWrap">
+                    <canvas id="mainCanvas"></canvas>
+                    <!-- Crop handles rendered over canvas -->
+                    <div class="cpdf-crop-box" id="cropBox" hidden>
+                        <div class="cpdf-crop-handle cpdf-handle-tl" data-handle="tl"></div>
+                        <div class="cpdf-crop-handle cpdf-handle-tr" data-handle="tr"></div>
+                        <div class="cpdf-crop-handle cpdf-handle-bl" data-handle="bl"></div>
+                        <div class="cpdf-crop-handle cpdf-handle-br" data-handle="br"></div>
+                    </div>
+                </div>
+
+                <!-- Page Actions -->
+                <div class="cpdf-page-actions" id="pageActions">
+                    <button class="cpdf-btn-icon" id="duplicatePageBtn" title="Duplicate page">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                        Duplicate
+                    </button>
+                    <button class="cpdf-btn-icon" id="deletePageBtn" title="Delete page">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                        Delete
+                    </button>
+                    <button class="cpdf-btn-icon" id="undoBtn" title="Undo">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
+                        Undo
+                    </button>
+                    <button class="cpdf-btn-icon" id="redoBtn" title="Redo">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.13-9.36L23 10"/></svg>
+                        Redo
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Generate PDF Button Bar -->
+        <div class="cpdf-bottom-bar" id="bottomBar">
+            <button class="cpdf-btn cpdf-btn-glass" id="backToUpload">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+                Back
+            </button>
+            <button class="cpdf-btn cpdf-btn-glass" id="previewPdfBtn">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                Preview
+            </button>
+            <button class="cpdf-btn cpdf-btn-accent cpdf-btn-lg" id="generatePdfBtn">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><polyline points="9 15 12 12 15 15"/></svg>
+                Generate PDF
+            </button>
+        </div>
+    </section>
+
+    <!-- ── PDF Settings Modal ────────────────────────────────────── -->
+    <div class="cpdf-modal" id="settingsModal">
+        <div class="cpdf-modal-content">
+            <div class="cpdf-modal-header">
+                <h3>⚙️ PDF Settings</h3>
+                <button class="cpdf-modal-close" id="settingsClose">&times;</button>
+            </div>
+            <div class="cpdf-modal-body">
+                <div class="cpdf-form-group">
+                    <label class="cpdf-label">File Name</label>
+                    <input type="text" id="pdfFileName" class="cpdf-input" placeholder="My Document" value="Scanned Document" maxlength="100">
+                </div>
+                <div class="cpdf-form-row">
+                    <div class="cpdf-form-group">
+                        <label class="cpdf-label">Page Size</label>
+                        <select id="pageSize" class="cpdf-select">
+                            <option value="a4" selected>A4 (210 × 297 mm)</option>
+                            <option value="letter">Letter (8.5 × 11 in)</option>
+                            <option value="legal">Legal (8.5 × 14 in)</option>
+                            <option value="fit">Fit to Image</option>
+                        </select>
+                    </div>
+                    <div class="cpdf-form-group">
+                        <label class="cpdf-label">Orientation</label>
+                        <select id="pageOrientation" class="cpdf-select">
+                            <option value="portrait" selected>Portrait</option>
+                            <option value="landscape">Landscape</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="cpdf-form-row">
+                    <div class="cpdf-form-group">
+                        <label class="cpdf-label">Margin</label>
+                        <select id="pageMargin" class="cpdf-select">
+                            <option value="0">None</option>
+                            <option value="10">Small (10mm)</option>
+                            <option value="20" selected>Medium (20mm)</option>
+                            <option value="30">Large (30mm)</option>
+                        </select>
+                    </div>
+                    <div class="cpdf-form-group">
+                        <label class="cpdf-label">Image Quality</label>
+                        <select id="imageQuality" class="cpdf-select">
+                            <option value="0.6">Low (Smaller File)</option>
+                            <option value="0.8" selected>Medium</option>
+                            <option value="0.95">High (Best Quality)</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="cpdf-form-row">
+                    <div class="cpdf-form-group">
+                        <label class="cpdf-label cpdf-checkbox-label">
+                            <input type="checkbox" id="addPageNumbers">
+                            Add page numbers
+                        </label>
+                    </div>
+                    <div class="cpdf-form-group">
+                        <label class="cpdf-label cpdf-checkbox-label">
+                            <input type="checkbox" id="compressPdf">
+                            Compress PDF
+                        </label>
+                    </div>
+                </div>
+
+                <div class="cpdf-divider"></div>
+                <h4 class="cpdf-section-title">🔒 Advanced Options</h4>
+
+                <div class="cpdf-form-group">
+                    <label class="cpdf-label cpdf-checkbox-label">
+                        <input type="checkbox" id="addWatermark">
+                        Add Watermark
+                    </label>
+                    <input type="text" id="watermarkText" class="cpdf-input cpdf-sub-input" placeholder="Watermark text..." maxlength="50" hidden>
+                </div>
+                <div class="cpdf-form-group">
+                    <label class="cpdf-label cpdf-checkbox-label">
+                        <input type="checkbox" id="passwordProtect">
+                        Password Protect
+                    </label>
+                    <input type="password" id="pdfPassword" class="cpdf-input cpdf-sub-input" placeholder="Enter password..." maxlength="50" hidden autocomplete="new-password">
+                </div>
+                <div class="cpdf-form-group">
+                    <label class="cpdf-label cpdf-checkbox-label">
+                        <input type="checkbox" id="enableOcr">
+                        Extract text (OCR) – makes PDF searchable
+                    </label>
+                </div>
+                <div class="cpdf-form-group">
+                    <label class="cpdf-label cpdf-checkbox-label">
+                        <input type="checkbox" id="addSignature">
+                        Add Digital Signature
+                    </label>
+                </div>
+            </div>
+            <div class="cpdf-modal-footer">
+                <button class="cpdf-btn cpdf-btn-glass" id="settingsCancel">Cancel</button>
+                <button class="cpdf-btn cpdf-btn-accent" id="settingsConfirm">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                    Generate PDF
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── Signature Modal ───────────────────────────────────────── -->
+    <div class="cpdf-modal" id="signatureModal">
+        <div class="cpdf-modal-content cpdf-sig-modal">
+            <div class="cpdf-modal-header">
+                <h3>✍️ Draw Signature</h3>
+                <button class="cpdf-modal-close" id="sigClose">&times;</button>
+            </div>
+            <canvas id="signatureCanvas" width="500" height="200"></canvas>
+            <div class="cpdf-modal-footer">
+                <button class="cpdf-btn cpdf-btn-glass" id="sigClear">Clear</button>
+                <button class="cpdf-btn cpdf-btn-accent" id="sigApply">Use Signature</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── Preview Modal ─────────────────────────────────────────── -->
+    <div class="cpdf-modal" id="previewModal">
+        <div class="cpdf-modal-content cpdf-preview-modal">
+            <div class="cpdf-modal-header">
+                <h3>📄 PDF Preview</h3>
+                <button class="cpdf-modal-close" id="previewClose">&times;</button>
+            </div>
+            <div class="cpdf-preview-pages" id="previewPages">
+                <!-- Preview pages rendered by JS -->
+            </div>
+        </div>
+    </div>
+
+    <!-- ── Progress Overlay ──────────────────────────────────────── -->
+    <div class="cpdf-progress-overlay" id="progressOverlay" hidden>
+        <div class="cpdf-progress-card">
+            <div class="cpdf-spinner"></div>
+            <h3 id="progressTitle">Generating PDF...</h3>
+            <p id="progressText">Processing page 1 of X</p>
+            <div class="cpdf-progress-bar">
+                <div class="cpdf-progress-fill" id="progressFill"></div>
+            </div>
+            <span class="cpdf-progress-pct" id="progressPct">0%</span>
+        </div>
+    </div>
+
+    <!-- ── Result Section ────────────────────────────────────────── -->
+    <section class="cpdf-result-section" id="resultSection" hidden>
+        <div class="cpdf-result-card">
+            <div class="cpdf-result-icon">✅</div>
+            <h2>PDF Generated Successfully!</h2>
+            <p class="cpdf-result-info" id="resultInfo">Your document is ready</p>
+            <div class="cpdf-result-actions">
+                <button class="cpdf-btn cpdf-btn-accent cpdf-btn-lg" id="downloadPdfBtn">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                    Download PDF
+                </button>
+                <button class="cpdf-btn cpdf-btn-glass" id="sharePdfBtn">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+                    Share
+                </button>
+                <button class="cpdf-btn cpdf-btn-glass" id="previewResultBtn">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                    Preview in Browser
+                </button>
+            </div>
+            <button class="cpdf-btn cpdf-btn-glass" id="createAnotherBtn" style="margin-top:20px">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                Create Another PDF
+            </button>
+        </div>
+    </section>
+
+</div>
+
+<!-- ══ CDN Libraries ════════════════════════════════════════════════ -->
+<script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+<script src="/js/createpdf.js"></script>
+
+</body>
+</html>

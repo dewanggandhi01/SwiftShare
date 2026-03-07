@@ -160,6 +160,146 @@ body{
 /* ── Misc ─────────────────────────────────────────────────────────── */
 .text-output{width:100%;min-height:200px;padding:14px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radsm);color:var(--text);font-size:.88rem;resize:vertical;font-family:inherit;outline:none}
 .text-output:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(99,102,241,.1)}
+
+/* ═══════════════════════════════════════════════════════════════════
+   CREATE PDF (Document Scanner) – Tool Styles
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* Upload Zone */
+.cpdf-upload-zone{
+    border:2px dashed rgba(99,102,241,.3);border-radius:var(--radlg,20px);
+    padding:48px 24px;text-align:center;cursor:pointer;
+    transition:all .3s ease;background:rgba(99,102,241,.03);
+}
+.cpdf-upload-zone:hover,.cpdf-upload-zone.dragover{
+    border-color:var(--accent);background:rgba(99,102,241,.08);
+    transform:translateY(-2px);box-shadow:0 8px 32px rgba(99,102,241,.12);
+}
+
+/* Editor Layout */
+.cpdf-editor-layout{display:flex;min-height:500px;border:1px solid var(--border);border-radius:var(--radsm);overflow:hidden;margin-top:12px}
+
+/* Sidebar */
+.cpdf-sidebar{width:160px;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0}
+.cpdf-sidebar-header{display:flex;align-items:center;gap:8px;padding:12px 10px;border-bottom:1px solid var(--border)}
+.cpdf-sidebar-header h3{font-size:.82rem;font-weight:600;flex:1;display:flex;align-items:center;gap:6px}
+.cpdf-page-count{background:rgba(99,102,241,.12);color:var(--accent-hover,#818cf8);font-size:.7rem;padding:2px 8px;border-radius:10px;font-weight:700}
+.cpdf-thumbs{flex:1;overflow-y:auto;padding:8px;display:flex;flex-direction:column;gap:6px}
+.cpdf-thumbs::-webkit-scrollbar{width:4px}
+.cpdf-thumbs::-webkit-scrollbar-thumb{background:rgba(255,255,255,.1);border-radius:2px}
+.cpdf-thumb{position:relative;border:2px solid var(--border);border-radius:6px;overflow:hidden;cursor:pointer;transition:all .2s;background:var(--bg3,#151c2c);flex-shrink:0;aspect-ratio:3/4}
+.cpdf-thumb:hover{border-color:rgba(255,255,255,.15)}
+.cpdf-thumb.active{border-color:var(--accent);box-shadow:0 0 0 2px rgba(99,102,241,.2)}
+.cpdf-thumb img{width:100%;height:100%;object-fit:cover;display:block}
+.cpdf-thumb-num{position:absolute;bottom:3px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.75);color:#fff;padding:1px 7px;border-radius:10px;font-size:.65rem;font-weight:600}
+.cpdf-thumb-drag{position:absolute;top:3px;left:3px;background:rgba(0,0,0,.5);color:#fff;padding:2px;border-radius:4px;opacity:0;transition:opacity .2s;cursor:grab;display:flex;align-items:center;justify-content:center}
+.cpdf-thumb:hover .cpdf-thumb-drag{opacity:1}
+.cpdf-thumb.dragging{opacity:.4;border-style:dashed}
+.cpdf-thumb.drag-over{border-color:var(--green,#22c55e);background:rgba(34,197,94,.08)}
+
+/* Canvas Area */
+.cpdf-canvas-area{flex:1;display:flex;flex-direction:column;overflow:hidden;position:relative}
+
+/* Toolbar */
+.cpdf-toolbar{display:flex;align-items:center;gap:4px;padding:8px 10px;background:var(--bg2);border-bottom:1px solid var(--border);overflow-x:auto;flex-shrink:0}
+.cpdf-toolbar::-webkit-scrollbar{height:3px}
+.cpdf-tool-group{display:flex;gap:2px}
+.cpdf-tool-divider{width:1px;height:26px;background:var(--border);margin:0 6px;flex-shrink:0}
+.cpdf-tool-btn{display:flex;flex-direction:column;align-items:center;gap:2px;padding:5px 8px;border:none;background:none;color:var(--text2);cursor:pointer;border-radius:6px;transition:all .2s;font-family:inherit;font-size:.65rem;font-weight:500;min-width:44px}
+.cpdf-tool-btn:hover{background:rgba(255,255,255,.06);color:var(--text)}
+.cpdf-tool-btn.active{background:rgba(99,102,241,.12);color:var(--accent-hover,#818cf8)}
+.cpdf-filter-preview{width:22px;height:22px;border-radius:50%;border:2px solid var(--border);display:block;transition:border-color .2s}
+.cpdf-filter-btn.active .cpdf-filter-preview{border-color:var(--accent)}
+
+/* Adjust Panel */
+.cpdf-adjust-panel{padding:10px 14px;background:var(--bg3,#151c2c);border-bottom:1px solid var(--border);display:flex;gap:14px;align-items:center;flex-wrap:wrap}
+.cpdf-slider-row{display:flex;align-items:center;gap:8px}
+.cpdf-slider-row label{font-size:.78rem;color:var(--text2);font-weight:500;min-width:65px}
+.cpdf-slider-row input[type="range"]{width:110px;accent-color:var(--accent);height:4px;cursor:pointer}
+.cpdf-slider-val{font-size:.75rem;color:var(--accent-hover,#818cf8);font-weight:600;width:28px;text-align:center}
+
+/* Preview Wrap */
+.cpdf-preview-wrap{flex:1;display:flex;align-items:center;justify-content:center;overflow:auto;padding:16px;background:var(--bg,#0b0f1a);position:relative}
+.cpdf-preview-wrap canvas{max-width:100%;max-height:100%;object-fit:contain;border-radius:6px;box-shadow:0 12px 40px rgba(0,0,0,.5);background:#fff}
+
+/* Crop Box */
+.cpdf-crop-box{position:absolute;border:2px solid var(--accent);background:rgba(99,102,241,.08);pointer-events:auto}
+.cpdf-crop-handle{position:absolute;width:12px;height:12px;background:var(--accent);border:2px solid #fff;border-radius:50%;cursor:pointer;z-index:2}
+.cpdf-handle-tl{top:-6px;left:-6px;cursor:nw-resize}
+.cpdf-handle-tr{top:-6px;right:-6px;cursor:ne-resize}
+.cpdf-handle-bl{bottom:-6px;left:-6px;cursor:sw-resize}
+.cpdf-handle-br{bottom:-6px;right:-6px;cursor:se-resize}
+
+/* Page Actions */
+.cpdf-page-actions{display:flex;gap:4px;padding:8px 10px;background:var(--bg2);border-top:1px solid var(--border);justify-content:center;flex-shrink:0}
+.cpdf-btn-icon{display:inline-flex;align-items:center;gap:5px;background:none;border:none;color:var(--text2);cursor:pointer;font-size:.78rem;font-weight:500;padding:5px 10px;border-radius:6px;transition:all .2s;font-family:inherit}
+.cpdf-btn-icon:hover{color:var(--text);background:rgba(255,255,255,.06)}
+
+/* Bottom Bar */
+.cpdf-bottom-bar{display:flex;gap:10px;padding:12px 16px;background:var(--bg2);border-top:1px solid var(--border);justify-content:center;align-items:center;margin-top:12px;border-radius:var(--radsm)}
+
+/* Modals */
+.cpdf-modal{display:none;position:fixed;inset:0;z-index:500;background:rgba(0,0,0,.6);backdrop-filter:blur(8px);align-items:center;justify-content:center;padding:24px}
+.cpdf-modal.active{display:flex}
+.cpdf-modal-content{background:var(--bg3,#151c2c);border:1px solid var(--border);border-radius:16px;max-width:560px;width:100%;max-height:90vh;overflow-y:auto;box-shadow:0 12px 40px rgba(0,0,0,.5);animation:cpdfModalIn .3s ease}
+@keyframes cpdfModalIn{from{transform:translateY(20px) scale(.96);opacity:0}to{transform:none;opacity:1}}
+.cpdf-modal-header{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--border)}
+.cpdf-modal-header h3{font-size:1.05rem;font-weight:700}
+.cpdf-modal-close{background:none;border:none;color:var(--text2);font-size:1.4rem;cursor:pointer;width:30px;height:30px;display:flex;align-items:center;justify-content:center;border-radius:8px;transition:.2s}
+.cpdf-modal-close:hover{background:rgba(255,255,255,.06);color:var(--text)}
+.cpdf-modal-body{padding:20px}
+.cpdf-modal-footer{display:flex;gap:8px;justify-content:flex-end;padding:14px 20px;border-top:1px solid var(--border)}
+
+/* Form Elements */
+.cpdf-form-group{margin-bottom:14px}
+.cpdf-form-row{display:flex;gap:12px}
+.cpdf-form-row>.cpdf-form-group{flex:1;min-width:0}
+.cpdf-label{display:block;font-size:.82rem;color:var(--text2);margin-bottom:5px;font-weight:500}
+.cpdf-input,.cpdf-select{width:100%;padding:9px 12px;background:var(--bg2);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:.88rem;outline:none;transition:.2s;font-family:inherit}
+.cpdf-input:focus,.cpdf-select:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(99,102,241,.1)}
+.cpdf-sub-input{margin-top:8px}
+.cpdf-checkbox-label{display:flex!important;align-items:center;gap:8px;cursor:pointer;font-size:.86rem!important;color:var(--text)!important}
+.cpdf-checkbox-label input[type="checkbox"]{width:16px;height:16px;accent-color:var(--accent);cursor:pointer}
+.cpdf-divider{height:1px;background:var(--border);margin:18px 0}
+.cpdf-section-title{font-size:.9rem;font-weight:600;margin-bottom:12px;color:var(--text2)}
+
+/* Progress */
+.cpdf-progress-overlay{position:fixed;inset:0;z-index:600;background:rgba(0,0,0,.7);backdrop-filter:blur(12px);display:flex;align-items:center;justify-content:center}
+.cpdf-progress-card{background:var(--bg3,#151c2c);border:1px solid var(--border);border-radius:16px;padding:36px 44px;text-align:center;min-width:300px;box-shadow:0 12px 40px rgba(0,0,0,.5)}
+.cpdf-spinner{width:44px;height:44px;border:3px solid rgba(255,255,255,.1);border-radius:50%;border-top-color:var(--accent);animation:cpdfSpin .8s linear infinite;margin:0 auto 18px}
+@keyframes cpdfSpin{to{transform:rotate(360deg)}}
+.cpdf-progress-card h3{font-size:1.05rem;font-weight:600;margin-bottom:6px}
+.cpdf-progress-card p{color:var(--text2);font-size:.85rem;margin-bottom:14px}
+.cpdf-progress-bar{height:5px;background:var(--bg2);border-radius:4px;overflow:hidden}
+.cpdf-progress-fill{height:100%;width:0%;background:linear-gradient(90deg,var(--accent),var(--green,#22c55e));border-radius:4px;transition:width .3s}
+.cpdf-progress-pct{font-size:.8rem;color:var(--text2);margin-top:6px;display:block}
+
+/* Result */
+.cpdf-result-card{background:var(--bg3,#151c2c);border:1px solid var(--border);border-radius:16px;padding:40px;text-align:center;max-width:480px;margin:24px auto;box-shadow:0 12px 40px rgba(0,0,0,.5)}
+.cpdf-result-card h2{font-size:1.3rem;font-weight:700;margin-bottom:8px}
+.cpdf-result-info{color:var(--text2);font-size:.9rem;margin-bottom:16px}
+
+/* Preview Pages Modal Content */
+.cpdf-preview-pages canvas,.cpdf-preview-pages img{max-width:100%;border:1px solid var(--border);border-radius:6px;box-shadow:0 4px 24px rgba(0,0,0,.35);background:#fff}
+
+/* Responsive */
+@media(max-width:768px){
+    .cpdf-sidebar{width:72px}
+    .cpdf-sidebar-header h3{font-size:.72rem}
+    .cpdf-toolbar{gap:2px;padding:6px}
+    .cpdf-tool-btn{padding:3px 5px;min-width:36px;font-size:.6rem}
+    .cpdf-tool-btn span:last-child{display:none}
+    .cpdf-filter-preview{width:18px;height:18px}
+    .cpdf-adjust-panel{flex-direction:column;gap:6px;padding:6px 10px}
+    .cpdf-bottom-bar{padding:8px 10px;gap:6px}
+    .cpdf-page-actions{flex-wrap:wrap;gap:2px}
+    .cpdf-editor-layout{min-height:400px}
+    .cpdf-form-row{flex-direction:column;gap:0}
+    .cpdf-result-card{padding:28px 16px}
+}
+@media(max-width:480px){
+    .cpdf-sidebar{width:56px}
+}
 .pdf-divider{height:1px;background:var(--border);margin:20px 0}
 
 /* ── Footer ───────────────────────────────────────────────────────── */

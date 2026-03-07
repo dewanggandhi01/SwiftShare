@@ -17,7 +17,7 @@
     const CATEGORIES = [
         { id: 'organize', name: '📁 Organize', tools: ['merge','split','remove-pages','organize'] },
         { id: 'optimize', name: '⚡ Optimize', tools: ['compress','repair','pdfa'] },
-        { id: 'to-pdf', name: '📄 Convert to PDF', tools: ['word-to-pdf','jpg-to-pdf','html-to-pdf','ppt-to-pdf','excel-to-pdf'] },
+        { id: 'to-pdf', name: '📄 Convert to PDF', tools: ['word-to-pdf','jpg-to-pdf','html-to-pdf','ppt-to-pdf','excel-to-pdf','create-pdf'] },
         { id: 'from-pdf', name: '🔄 Convert from PDF', tools: ['pdf-to-word','pdf-to-jpg','pdf-to-excel','pdf-to-ppt'] },
         { id: 'edit', name: '✏️ Edit', tools: ['edit','crop','compare'] },
         { id: 'security', name: '🔒 Security', tools: ['protect','unlock','redact'] },
@@ -54,6 +54,7 @@
         'sign':         { name:'Sign PDF',         icon:'✍️', desc:'Draw and place your signature on PDF',             color:'#4361ee' },
         'ocr':          { name:'OCR',              icon:'👁️', desc:'Extract text from scanned documents or images',    color:'#7209b7' },
         'batch':        { name:'Batch Process',    icon:'⚙️', desc:'Process multiple PDFs at once',                    color:'#06d6a0' },
+        'create-pdf':   { name:'Create PDF',       icon:'📸', desc:'Scan documents, edit images & create PDFs',         color:'#8b5cf6' },
     };
 
     /* ── DOM ──────────────────────────────────────────────────────── */
@@ -1776,6 +1777,965 @@
                 }
             } catch (e) { notify('Batch failed: ' + e.message, 'error'); }
             btn.disabled = false; btn.textContent = '⚙️ Process All';
+        }
+    };
+
+    /* ── 29. CREATE PDF (Document Scanner & PDF Generator) ────────── */
+    handlers['create-pdf'] = {
+        state: null,
+        _cropState: null,
+        _cameraStream: null,
+        _sigCtx: null,
+        _sigDrawing: false,
+
+        render: function () {
+            return '<div id="cpdf-container">' +
+                /* Upload Section */
+                '<div id="cpdf-upload">' +
+                '<div class="cpdf-upload-zone" id="cpdf-dropzone">' +
+                '<div style="font-size:2.5rem;margin-bottom:12px">📷</div>' +
+                '<h3 style="margin-bottom:6px">Drop images here</h3>' +
+                '<p style="color:var(--text2);font-size:.9rem">or click to browse files</p>' +
+                '<p style="color:var(--text3);font-size:.78rem;margin-top:10px">Supports JPG, PNG, WEBP, BMP · Up to 50 images</p>' +
+                '<input type="file" id="cpdf-file-input" accept="image/*" multiple hidden>' +
+                '</div>' +
+                '<div style="display:flex;gap:10px;justify-content:center;margin-top:16px;flex-wrap:wrap">' +
+                '<button class="btn btn-primary" id="cpdf-browse-btn">📁 Upload Images</button>' +
+                '<button class="btn" id="cpdf-camera-btn" style="background:var(--bg4);color:var(--text2);border:1px solid rgba(255,255,255,.1)">📷 Take Photo</button>' +
+                '</div>' +
+                '</div>' +
+
+                /* Editor Section */
+                '<div id="cpdf-editor" hidden>' +
+                '<div class="cpdf-editor-layout">' +
+                /* Sidebar */
+                '<div class="cpdf-sidebar">' +
+                '<div class="cpdf-sidebar-header"><h3>Pages <span class="cpdf-page-count" id="cpdf-page-count">0</span></h3>' +
+                '<button class="cpdf-btn-icon" id="cpdf-add-more" title="Add more">+</button>' +
+                '<input type="file" id="cpdf-add-more-input" accept="image/*" multiple hidden>' +
+                '</div>' +
+                '<div class="cpdf-thumbs" id="cpdf-thumb-list"></div>' +
+                '</div>' +
+                /* Canvas Area */
+                '<div class="cpdf-canvas-area">' +
+                /* Toolbar */
+                '<div class="cpdf-toolbar">' +
+                '<div class="cpdf-tool-group">' +
+                '<button class="cpdf-tool-btn" data-cptool="crop"><span>✂️</span><span>Crop</span></button>' +
+                '<button class="cpdf-tool-btn" data-cptool="rotate-left"><span>↺</span><span>Left</span></button>' +
+                '<button class="cpdf-tool-btn" data-cptool="rotate-right"><span>↻</span><span>Right</span></button>' +
+                '<button class="cpdf-tool-btn" data-cptool="perspective"><span>◇</span><span>Perspective</span></button>' +
+                '</div>' +
+                '<div class="cpdf-tool-divider"></div>' +
+                '<div class="cpdf-tool-group">' +
+                '<button class="cpdf-tool-btn" data-cptool="brightness"><span>☀</span><span>Adjust</span></button>' +
+                '<button class="cpdf-tool-btn" data-cptool="sharpen"><span>▲</span><span>Sharpen</span></button>' +
+                '</div>' +
+                '<div class="cpdf-tool-divider"></div>' +
+                '<div class="cpdf-tool-group cpdf-filters-group">' +
+                '<button class="cpdf-tool-btn cpdf-filter-btn active" data-cpfilter="original"><span class="cpdf-filter-preview" style="background:linear-gradient(135deg,#667eea,#764ba2)"></span><span>Original</span></button>' +
+                '<button class="cpdf-tool-btn cpdf-filter-btn" data-cpfilter="bw"><span class="cpdf-filter-preview" style="background:linear-gradient(135deg,#333,#fff)"></span><span>B&W</span></button>' +
+                '<button class="cpdf-tool-btn cpdf-filter-btn" data-cpfilter="enhance"><span class="cpdf-filter-preview" style="background:linear-gradient(135deg,#f093fb,#f5576c)"></span><span>Enhance</span></button>' +
+                '<button class="cpdf-tool-btn cpdf-filter-btn" data-cpfilter="grayscale"><span class="cpdf-filter-preview" style="background:linear-gradient(135deg,#868f96,#596164)"></span><span>Gray</span></button>' +
+                '<button class="cpdf-tool-btn cpdf-filter-btn" data-cpfilter="highcontrast"><span class="cpdf-filter-preview" style="background:linear-gradient(135deg,#000,#fff)"></span><span>Hi-Con</span></button>' +
+                '</div>' +
+                '</div>' +
+                /* Adjust Panel */
+                '<div class="cpdf-adjust-panel" id="cpdf-adjust-panel" hidden>' +
+                '<div class="cpdf-slider-row"><label>Brightness</label><input type="range" id="cpdf-brightness" min="-100" max="100" value="0"><span class="cpdf-slider-val" id="cpdf-bright-val">0</span></div>' +
+                '<div class="cpdf-slider-row"><label>Contrast</label><input type="range" id="cpdf-contrast" min="-100" max="100" value="0"><span class="cpdf-slider-val" id="cpdf-contrast-val">0</span></div>' +
+                '<div class="cpdf-slider-row"><button class="btn" id="cpdf-reset-adj" style="padding:4px 12px;font-size:.8rem">Reset</button>' +
+                '<button class="btn btn-primary" id="cpdf-apply-adj" style="padding:4px 12px;font-size:.8rem">Apply</button></div>' +
+                '</div>' +
+                /* Crop overlay */
+                '<div id="cpdf-crop-overlay" hidden style="position:absolute;top:0;left:0;right:0;padding:10px;display:flex;justify-content:center;gap:8px;z-index:10">' +
+                '<button class="btn btn-primary" id="cpdf-apply-crop" style="padding:6px 16px;font-size:.82rem">Apply Crop</button>' +
+                '<button class="btn" id="cpdf-cancel-crop" style="padding:6px 16px;font-size:.82rem;background:var(--bg4)">Cancel</button>' +
+                '</div>' +
+                /* Preview wrap */
+                '<div class="cpdf-preview-wrap" id="cpdf-preview-wrap">' +
+                '<canvas id="cpdf-main-canvas"></canvas>' +
+                '<div class="cpdf-crop-box" id="cpdf-crop-box" hidden>' +
+                '<div class="cpdf-crop-handle cpdf-handle-tl" data-handle="tl"></div>' +
+                '<div class="cpdf-crop-handle cpdf-handle-tr" data-handle="tr"></div>' +
+                '<div class="cpdf-crop-handle cpdf-handle-bl" data-handle="bl"></div>' +
+                '<div class="cpdf-crop-handle cpdf-handle-br" data-handle="br"></div>' +
+                '</div>' +
+                '</div>' +
+                /* Page actions */
+                '<div class="cpdf-page-actions">' +
+                '<button class="cpdf-btn-icon" id="cpdf-dup-btn" title="Duplicate">📋 Duplicate</button>' +
+                '<button class="cpdf-btn-icon" id="cpdf-del-btn" title="Delete">🗑️ Delete</button>' +
+                '<button class="cpdf-btn-icon" id="cpdf-undo-btn" title="Undo">↩ Undo</button>' +
+                '<button class="cpdf-btn-icon" id="cpdf-redo-btn" title="Redo">↪ Redo</button>' +
+                '</div>' +
+                '</div>' +
+                '</div>' +
+                /* Bottom bar */
+                '<div class="cpdf-bottom-bar">' +
+                '<button class="btn" id="cpdf-back-btn" style="background:var(--bg4);color:var(--text2);border:1px solid rgba(255,255,255,.1)">← Back</button>' +
+                '<button class="btn" id="cpdf-preview-btn" style="background:var(--bg4);color:var(--text2);border:1px solid rgba(255,255,255,.1)">👁 Preview</button>' +
+                '<button class="btn btn-primary" id="cpdf-generate-btn" style="padding:12px 28px;font-size:1rem">📄 Generate PDF</button>' +
+                '</div>' +
+                '</div>' +
+
+                /* Settings Modal */
+                '<div class="cpdf-modal" id="cpdf-settings-modal">' +
+                '<div class="cpdf-modal-content">' +
+                '<div class="cpdf-modal-header"><h3>⚙️ PDF Settings</h3><button class="cpdf-modal-close" id="cpdf-settings-close">&times;</button></div>' +
+                '<div class="cpdf-modal-body">' +
+                '<div class="cpdf-form-group"><label class="cpdf-label">File Name</label><input type="text" id="cpdf-filename" class="cpdf-input" placeholder="My Document" value="Scanned Document" maxlength="100"></div>' +
+                '<div class="cpdf-form-row">' +
+                '<div class="cpdf-form-group"><label class="cpdf-label">Page Size</label><select id="cpdf-pagesize" class="cpdf-select"><option value="a4" selected>A4</option><option value="letter">Letter</option><option value="legal">Legal</option><option value="fit">Fit to Image</option></select></div>' +
+                '<div class="cpdf-form-group"><label class="cpdf-label">Orientation</label><select id="cpdf-orientation" class="cpdf-select"><option value="portrait" selected>Portrait</option><option value="landscape">Landscape</option></select></div>' +
+                '</div>' +
+                '<div class="cpdf-form-row">' +
+                '<div class="cpdf-form-group"><label class="cpdf-label">Margin</label><select id="cpdf-margin" class="cpdf-select"><option value="0">None</option><option value="10">Small</option><option value="20" selected>Medium</option><option value="30">Large</option></select></div>' +
+                '<div class="cpdf-form-group"><label class="cpdf-label">Quality</label><select id="cpdf-quality" class="cpdf-select"><option value="0.6">Low</option><option value="0.8" selected>Medium</option><option value="0.95">High</option></select></div>' +
+                '</div>' +
+                '<div class="cpdf-form-row">' +
+                '<div class="cpdf-form-group"><label class="cpdf-label cpdf-checkbox-label"><input type="checkbox" id="cpdf-pagenums"> Page numbers</label></div>' +
+                '<div class="cpdf-form-group"><label class="cpdf-label cpdf-checkbox-label"><input type="checkbox" id="cpdf-compress"> Compress</label></div>' +
+                '</div>' +
+                '<div class="cpdf-divider"></div>' +
+                '<h4 class="cpdf-section-title">🔒 Advanced</h4>' +
+                '<div class="cpdf-form-group"><label class="cpdf-label cpdf-checkbox-label"><input type="checkbox" id="cpdf-watermark-chk"> Watermark</label>' +
+                '<input type="text" id="cpdf-watermark-text" class="cpdf-input cpdf-sub-input" placeholder="Watermark text..." maxlength="50" hidden></div>' +
+                '<div class="cpdf-form-group"><label class="cpdf-label cpdf-checkbox-label"><input type="checkbox" id="cpdf-ocr-chk"> Extract text (OCR)</label></div>' +
+                '<div class="cpdf-form-group"><label class="cpdf-label cpdf-checkbox-label"><input type="checkbox" id="cpdf-sig-chk"> Add Signature</label></div>' +
+                '</div>' +
+                '<div class="cpdf-modal-footer">' +
+                '<button class="btn" id="cpdf-settings-cancel" style="background:var(--bg4);color:var(--text2)">Cancel</button>' +
+                '<button class="btn btn-primary" id="cpdf-settings-confirm">📄 Generate PDF</button>' +
+                '</div>' +
+                '</div></div>' +
+
+                /* Signature Modal */
+                '<div class="cpdf-modal" id="cpdf-sig-modal">' +
+                '<div class="cpdf-modal-content" style="max-width:540px">' +
+                '<div class="cpdf-modal-header"><h3>✍️ Draw Signature</h3><button class="cpdf-modal-close" id="cpdf-sig-close">&times;</button></div>' +
+                '<canvas id="cpdf-sig-canvas" width="500" height="200" style="width:100%;cursor:crosshair;background:var(--bg2);display:block;border-bottom:1px solid var(--border)"></canvas>' +
+                '<div class="cpdf-modal-footer">' +
+                '<button class="btn" id="cpdf-sig-clear" style="background:var(--bg4);color:var(--text2)">Clear</button>' +
+                '<button class="btn btn-primary" id="cpdf-sig-apply">Use Signature</button>' +
+                '</div></div></div>' +
+
+                /* Preview Modal */
+                '<div class="cpdf-modal" id="cpdf-preview-modal">' +
+                '<div class="cpdf-modal-content" style="max-width:800px;max-height:90vh">' +
+                '<div class="cpdf-modal-header"><h3>📄 Preview</h3><button class="cpdf-modal-close" id="cpdf-preview-close">&times;</button></div>' +
+                '<div class="cpdf-preview-pages" id="cpdf-preview-pages" style="display:flex;flex-direction:column;align-items:center;gap:16px;padding:24px;overflow-y:auto;max-height:calc(90vh - 80px)"></div>' +
+                '</div></div>' +
+
+                /* Camera Modal */
+                '<div class="cpdf-modal" id="cpdf-camera-modal">' +
+                '<div class="cpdf-modal-content" style="max-width:640px">' +
+                '<div class="cpdf-modal-header"><h3>📷 Camera</h3><button class="cpdf-modal-close" id="cpdf-camera-close">&times;</button></div>' +
+                '<div style="background:#000;min-height:300px;display:flex;align-items:center;justify-content:center"><video id="cpdf-camera-video" autoplay playsinline style="width:100%;display:block"></video></div>' +
+                '<div style="display:flex;justify-content:center;padding:16px"><button class="btn btn-primary" id="cpdf-capture-btn" style="width:56px;height:56px;border-radius:50%;font-size:1.4rem;padding:0">📷</button></div>' +
+                '<canvas id="cpdf-camera-canvas" hidden></canvas>' +
+                '</div></div>' +
+
+                /* Progress Overlay */
+                '<div class="cpdf-progress-overlay" id="cpdf-progress" hidden>' +
+                '<div class="cpdf-progress-card">' +
+                '<div class="cpdf-spinner"></div>' +
+                '<h3>Generating PDF...</h3>' +
+                '<p id="cpdf-progress-text">Processing...</p>' +
+                '<div class="cpdf-progress-bar"><div class="cpdf-progress-fill" id="cpdf-progress-fill"></div></div>' +
+                '<span class="cpdf-progress-pct" id="cpdf-progress-pct">0%</span>' +
+                '</div></div>' +
+
+                /* Result Section */
+                '<div id="cpdf-result" hidden>' +
+                '<div class="cpdf-result-card">' +
+                '<div style="font-size:3rem;margin-bottom:16px">✅</div>' +
+                '<h2>PDF Generated!</h2>' +
+                '<p class="cpdf-result-info" id="cpdf-result-info">Ready</p>' +
+                '<div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:20px">' +
+                '<button class="btn btn-primary" id="cpdf-dl-btn">⬇️ Download</button>' +
+                '<button class="btn" id="cpdf-share-btn" style="background:var(--bg4);color:var(--text2)">📤 Share</button>' +
+                '<button class="btn" id="cpdf-browser-btn" style="background:var(--bg4);color:var(--text2)">👁 Preview</button>' +
+                '</div>' +
+                '<button class="btn" id="cpdf-another-btn" style="background:var(--bg4);color:var(--text2);margin-top:16px">+ Create Another</button>' +
+                '</div></div>' +
+
+                '</div>';
+        },
+
+        init: function () {
+            var self = this;
+            self.state = {
+                pages: [],
+                activeIdx: 0,
+                signatureData: null,
+                generatedBlob: null,
+                generatedName: '',
+                idCounter: 0
+            };
+            self._cropState = { active: false, x: 0, y: 0, w: 0, h: 0, dragging: null };
+
+            var el = function (id) { return document.getElementById(id); };
+            var allEl = function (sel) { return document.querySelectorAll(sel); };
+
+            // Upload zone
+            var dropzone = el('cpdf-dropzone');
+            var fileInput = el('cpdf-file-input');
+            dropzone.addEventListener('click', function () { fileInput.click(); });
+            el('cpdf-browse-btn').addEventListener('click', function () { fileInput.click(); });
+            fileInput.addEventListener('change', function () { if (fileInput.files.length) self._addImages(fileInput.files); fileInput.value = ''; });
+            dropzone.addEventListener('dragover', function (e) { e.preventDefault(); dropzone.classList.add('dragover'); });
+            dropzone.addEventListener('dragleave', function () { dropzone.classList.remove('dragover'); });
+            dropzone.addEventListener('drop', function (e) { e.preventDefault(); dropzone.classList.remove('dragover'); if (e.dataTransfer.files.length) self._addImages(e.dataTransfer.files); });
+
+            // Camera
+            el('cpdf-camera-btn').addEventListener('click', function () { self._openCamera(); });
+            el('cpdf-capture-btn').addEventListener('click', function () { self._capturePhoto(); });
+            el('cpdf-camera-close').addEventListener('click', function () { self._closeCamera(); });
+
+            // Add more
+            el('cpdf-add-more').addEventListener('click', function () { el('cpdf-add-more-input').click(); });
+            el('cpdf-add-more-input').addEventListener('change', function () { if (this.files.length) self._addImages(this.files); this.value = ''; });
+
+            // Tool buttons
+            allEl('[data-cptool]').forEach(function (btn) {
+                btn.addEventListener('click', function () {
+                    var tool = btn.dataset.cptool;
+                    if (tool === 'rotate-left') { self._rotatePage('left'); return; }
+                    if (tool === 'rotate-right') { self._rotatePage('right'); return; }
+                    if (tool === 'perspective') { self._applyPerspective(); return; }
+                    if (tool === 'sharpen') { self._applySharpenTool(); return; }
+                    if (tool === 'crop') {
+                        if (self._cropState.active) { self._cancelCrop(); return; }
+                        self._closeAllPanels();
+                        btn.classList.add('active');
+                        self._startCrop();
+                        return;
+                    }
+                    if (tool === 'brightness') {
+                        self._closeAllPanels();
+                        btn.classList.add('active');
+                        var page = self.state.pages[self.state.activeIdx];
+                        if (page) {
+                            el('cpdf-brightness').value = page.brightness;
+                            el('cpdf-bright-val').textContent = page.brightness;
+                            el('cpdf-contrast').value = page.contrast;
+                            el('cpdf-contrast-val').textContent = page.contrast;
+                        }
+                        el('cpdf-adjust-panel').hidden = false;
+                        return;
+                    }
+                });
+            });
+
+            // Filters
+            allEl('[data-cpfilter]').forEach(function (btn) {
+                btn.addEventListener('click', function () {
+                    var page = self.state.pages[self.state.activeIdx];
+                    if (!page) return;
+                    page.filter = btn.dataset.cpfilter;
+                    allEl('[data-cpfilter]').forEach(function (b) { b.classList.toggle('active', b === btn); });
+                    self._renderMainCanvas();
+                });
+            });
+
+            // Brightness/Contrast
+            el('cpdf-brightness').addEventListener('input', function (e) {
+                el('cpdf-bright-val').textContent = e.target.value;
+                var page = self.state.pages[self.state.activeIdx];
+                if (page) { page.brightness = parseInt(e.target.value); self._renderMainCanvas(); }
+            });
+            el('cpdf-contrast').addEventListener('input', function (e) {
+                el('cpdf-contrast-val').textContent = e.target.value;
+                var page = self.state.pages[self.state.activeIdx];
+                if (page) { page.contrast = parseInt(e.target.value); self._renderMainCanvas(); }
+            });
+            el('cpdf-reset-adj').addEventListener('click', function () {
+                var page = self.state.pages[self.state.activeIdx];
+                if (page) { page.brightness = 0; page.contrast = 0; }
+                el('cpdf-brightness').value = 0; el('cpdf-bright-val').textContent = '0';
+                el('cpdf-contrast').value = 0; el('cpdf-contrast-val').textContent = '0';
+                self._renderMainCanvas();
+            });
+            el('cpdf-apply-adj').addEventListener('click', function () {
+                var page = self.state.pages[self.state.activeIdx];
+                if (!page) return;
+                self._pushUndo(page);
+                var c = self._cloneCanvas(page.editedCanvas);
+                var ctx = c.getContext('2d');
+                if (page.brightness !== 0 || page.contrast !== 0) self._applyBrightnessContrast(ctx, c.width, c.height, page.brightness, page.contrast);
+                page.editedCanvas = c;
+                page.brightness = 0; page.contrast = 0;
+                el('cpdf-brightness').value = 0; el('cpdf-bright-val').textContent = '0';
+                el('cpdf-contrast').value = 0; el('cpdf-contrast-val').textContent = '0';
+                self._closeAllPanels();
+                self._renderThumbs();
+                self._renderMainCanvas();
+                notify('Adjustments applied', 'success');
+            });
+
+            // Crop
+            el('cpdf-apply-crop').addEventListener('click', function () { self._applyCrop(); });
+            el('cpdf-cancel-crop').addEventListener('click', function () { self._cancelCrop(); });
+            self._initCropDrag();
+
+            // Page operations
+            el('cpdf-dup-btn').addEventListener('click', function () { self._duplicatePage(); });
+            el('cpdf-del-btn').addEventListener('click', function () { self._deletePage(); });
+            el('cpdf-undo-btn').addEventListener('click', function () { self._undo(); });
+            el('cpdf-redo-btn').addEventListener('click', function () { self._redo(); });
+
+            // Bottom bar
+            el('cpdf-back-btn').addEventListener('click', function () { self._showUpload(); });
+            el('cpdf-preview-btn').addEventListener('click', function () { self._showPreviewModal(); });
+            el('cpdf-generate-btn').addEventListener('click', function () {
+                if (!self.state.pages.length) { notify('Add at least one image first', 'error'); return; }
+                el('cpdf-settings-modal').classList.add('active');
+            });
+
+            // Settings modal
+            el('cpdf-settings-close').addEventListener('click', function () { el('cpdf-settings-modal').classList.remove('active'); });
+            el('cpdf-settings-cancel').addEventListener('click', function () { el('cpdf-settings-modal').classList.remove('active'); });
+            el('cpdf-settings-confirm').addEventListener('click', function () {
+                if (el('cpdf-sig-chk').checked && !self.state.signatureData) {
+                    el('cpdf-settings-modal').classList.remove('active');
+                    el('cpdf-sig-modal').classList.add('active');
+                    return;
+                }
+                self._generatePDF();
+            });
+
+            // Watermark toggle
+            el('cpdf-watermark-chk').addEventListener('change', function (e) { el('cpdf-watermark-text').hidden = !e.target.checked; });
+
+            // Signature checkbox
+            el('cpdf-sig-chk').addEventListener('change', function (e) {
+                if (e.target.checked && !self.state.signatureData) el('cpdf-sig-modal').classList.add('active');
+            });
+
+            // Signature modal
+            el('cpdf-sig-close').addEventListener('click', function () { el('cpdf-sig-modal').classList.remove('active'); el('cpdf-sig-chk').checked = false; });
+            el('cpdf-sig-clear').addEventListener('click', function () { self._sigCtx.clearRect(0, 0, 500, 200); });
+            el('cpdf-sig-apply').addEventListener('click', function () {
+                var canvas = el('cpdf-sig-canvas');
+                var blank = document.createElement('canvas'); blank.width = canvas.width; blank.height = canvas.height;
+                if (canvas.toDataURL() === blank.toDataURL()) { notify('Draw a signature first', 'error'); return; }
+                self.state.signatureData = canvas.toDataURL('image/png');
+                el('cpdf-sig-modal').classList.remove('active');
+                notify('Signature saved', 'success');
+                if (!el('cpdf-settings-modal').classList.contains('active')) el('cpdf-settings-modal').classList.add('active');
+            });
+            self._initSignaturePad();
+
+            // Preview modal
+            el('cpdf-preview-close').addEventListener('click', function () { el('cpdf-preview-modal').classList.remove('active'); });
+
+            // Result actions
+            el('cpdf-dl-btn').addEventListener('click', function () { self._downloadPDF(); });
+            el('cpdf-share-btn').addEventListener('click', function () { self._sharePDF(); });
+            el('cpdf-browser-btn').addEventListener('click', function () {
+                if (self.state.generatedBlob) window.open(URL.createObjectURL(self.state.generatedBlob), '_blank');
+            });
+            el('cpdf-another-btn').addEventListener('click', function () {
+                self.state.pages = []; self.state.activeIdx = 0;
+                self.state.generatedBlob = null; self.state.generatedName = '';
+                self.state.signatureData = null;
+                self._showUpload();
+            });
+
+            // Close modals on backdrop
+            allEl('#cpdf-container .cpdf-modal').forEach(function (modal) {
+                modal.addEventListener('click', function (e) {
+                    if (e.target === modal) {
+                        modal.classList.remove('active');
+                        if (modal.id === 'cpdf-camera-modal') self._closeCamera();
+                    }
+                });
+            });
+        },
+
+        /* ── Internal helpers ──────────────────────────────────── */
+        _loadImage: function (file) {
+            return new Promise(function (resolve, reject) {
+                if (!file.type.startsWith('image/')) { reject(new Error('Not an image')); return; }
+                if (file.size > 50 * 1024 * 1024) { reject(new Error('File too large')); return; }
+                var reader = new FileReader();
+                reader.onload = function () {
+                    var img = new Image();
+                    img.onload = function () { resolve(img); };
+                    img.onerror = function () { reject(new Error('Failed to load')); };
+                    img.src = reader.result;
+                };
+                reader.onerror = function () { reject(new Error('Read failed')); };
+                reader.readAsDataURL(file);
+            });
+        },
+
+        _imgToCanvas: function (img) {
+            var c = document.createElement('canvas');
+            c.width = img.naturalWidth || img.width;
+            c.height = img.naturalHeight || img.height;
+            c.getContext('2d').drawImage(img, 0, 0);
+            return c;
+        },
+
+        _cloneCanvas: function (src) {
+            var c = document.createElement('canvas');
+            c.width = src.width; c.height = src.height;
+            c.getContext('2d').drawImage(src, 0, 0);
+            return c;
+        },
+
+        _addImages: async function (files) {
+            var self = this;
+            var arr = Array.from(files).slice(0, 50 - self.state.pages.length);
+            if (!arr.length) return;
+            for (var i = 0; i < arr.length; i++) {
+                try {
+                    var img = await self._loadImage(arr[i]);
+                    var canvas = self._imgToCanvas(img);
+                    self.state.pages.push({
+                        id: ++self.state.idCounter,
+                        originalImg: img, editedCanvas: canvas,
+                        filter: 'original', brightness: 0, contrast: 0,
+                        undoStack: [], redoStack: []
+                    });
+                } catch (e) { notify('Skipped: ' + arr[i].name, 'error'); }
+            }
+            if (self.state.pages.length) {
+                self._showEditor();
+                self._renderThumbs();
+                self._selectPage(self.state.pages.length > 1 ? self.state.activeIdx : 0);
+            }
+        },
+
+        _showUpload: function () {
+            document.getElementById('cpdf-upload').hidden = false;
+            document.getElementById('cpdf-editor').hidden = true;
+            document.getElementById('cpdf-result').hidden = true;
+        },
+        _showEditor: function () {
+            document.getElementById('cpdf-upload').hidden = true;
+            document.getElementById('cpdf-editor').hidden = false;
+            document.getElementById('cpdf-result').hidden = true;
+        },
+        _showResultSection: function () {
+            document.getElementById('cpdf-upload').hidden = true;
+            document.getElementById('cpdf-editor').hidden = true;
+            document.getElementById('cpdf-result').hidden = false;
+        },
+
+        _renderThumbs: function () {
+            var self = this;
+            var list = document.getElementById('cpdf-thumb-list');
+            list.innerHTML = '';
+            document.getElementById('cpdf-page-count').textContent = self.state.pages.length;
+            self.state.pages.forEach(function (page, idx) {
+                var div = document.createElement('div');
+                div.className = 'cpdf-thumb' + (idx === self.state.activeIdx ? ' active' : '');
+                div.dataset.idx = idx;
+                div.draggable = true;
+                var tc = document.createElement('canvas');
+                var tw = 160, th = Math.round((page.editedCanvas.height / page.editedCanvas.width) * tw);
+                tc.width = tw; tc.height = th;
+                tc.getContext('2d').drawImage(page.editedCanvas, 0, 0, tw, th);
+                var img = document.createElement('img');
+                img.src = tc.toDataURL('image/jpeg', 0.5);
+                img.draggable = false;
+                var num = document.createElement('span');
+                num.className = 'cpdf-thumb-num'; num.textContent = idx + 1;
+                var grip = document.createElement('span');
+                grip.className = 'cpdf-thumb-drag'; grip.innerHTML = '⠿';
+                div.append(grip, img, num);
+                div.addEventListener('click', function () { self._selectPage(idx); });
+                div.addEventListener('dragstart', function (e) { e.dataTransfer.setData('text/plain', String(idx)); div.classList.add('dragging'); });
+                div.addEventListener('dragend', function () { div.classList.remove('dragging'); });
+                div.addEventListener('dragover', function (e) { e.preventDefault(); div.classList.add('drag-over'); });
+                div.addEventListener('dragleave', function () { div.classList.remove('drag-over'); });
+                div.addEventListener('drop', function (e) {
+                    e.preventDefault(); div.classList.remove('drag-over');
+                    var fromIdx = parseInt(e.dataTransfer.getData('text/plain'));
+                    if (fromIdx !== idx) self._reorderPage(fromIdx, idx);
+                });
+                list.appendChild(div);
+            });
+        },
+
+        _selectPage: function (idx) {
+            var self = this;
+            if (idx < 0 || idx >= self.state.pages.length) return;
+            self.state.activeIdx = idx;
+            document.querySelectorAll('#cpdf-thumb-list .cpdf-thumb').forEach(function (t, i) { t.classList.toggle('active', i === idx); });
+            self._renderMainCanvas();
+            self._closeAllPanels();
+        },
+
+        _reorderPage: function (from, to) {
+            var s = this.state;
+            var item = s.pages.splice(from, 1)[0];
+            s.pages.splice(to, 0, item);
+            if (s.activeIdx === from) s.activeIdx = to;
+            else if (from < s.activeIdx && to >= s.activeIdx) s.activeIdx--;
+            else if (from > s.activeIdx && to <= s.activeIdx) s.activeIdx++;
+            this._renderThumbs();
+            this._renderMainCanvas();
+        },
+
+        _renderMainCanvas: function () {
+            var page = this.state.pages[this.state.activeIdx];
+            if (!page) return;
+            var mc = document.getElementById('cpdf-main-canvas');
+            var src = page.editedCanvas;
+            mc.width = src.width; mc.height = src.height;
+            var ctx = mc.getContext('2d');
+            ctx.drawImage(src, 0, 0);
+            if (page.filter !== 'original') this._applyFilterToCtx(ctx, mc.width, mc.height, page.filter);
+            if (page.brightness !== 0 || page.contrast !== 0) this._applyBrightnessContrast(ctx, mc.width, mc.height, page.brightness, page.contrast);
+            var self = this;
+            document.querySelectorAll('[data-cpfilter]').forEach(function (b) { b.classList.toggle('active', b.dataset.cpfilter === page.filter); });
+        },
+
+        _applyFilterToCtx: function (ctx, w, h, filter) {
+            var iData = ctx.getImageData(0, 0, w, h);
+            var d = iData.data;
+            switch (filter) {
+                case 'bw':
+                    for (var i = 0; i < d.length; i += 4) { var avg = d[i]*0.299+d[i+1]*0.587+d[i+2]*0.114; var v = avg>128?255:0; d[i]=d[i+1]=d[i+2]=v; } break;
+                case 'grayscale':
+                    for (var i = 0; i < d.length; i += 4) { var avg = d[i]*0.299+d[i+1]*0.587+d[i+2]*0.114; d[i]=d[i+1]=d[i+2]=avg; } break;
+                case 'enhance':
+                    for (var i = 0; i < d.length; i += 4) { d[i]=Math.min(255,d[i]*1.2+10); d[i+1]=Math.min(255,d[i+1]*1.15+5); d[i+2]=Math.min(255,d[i+2]*1.1); } break;
+                case 'highcontrast':
+                    for (var i = 0; i < d.length; i += 4) { var avg = d[i]*0.299+d[i+1]*0.587+d[i+2]*0.114; var v = Math.min(255,Math.max(0,((avg-128)*2.5)+128)); var bw = v>120?255:0; d[i]=d[i+1]=d[i+2]=bw; } break;
+            }
+            ctx.putImageData(iData, 0, 0);
+        },
+
+        _applyBrightnessContrast: function (ctx, w, h, brightness, contrast) {
+            var iData = ctx.getImageData(0, 0, w, h);
+            var d = iData.data;
+            var c = (contrast + 100) / 100;
+            var factor = (259 * (c * 255 + 255)) / (255 * (259 - c * 255));
+            for (var i = 0; i < d.length; i += 4) {
+                d[i]   = Math.min(255, Math.max(0, factor * (d[i] - 128) + 128 + brightness));
+                d[i+1] = Math.min(255, Math.max(0, factor * (d[i+1] - 128) + 128 + brightness));
+                d[i+2] = Math.min(255, Math.max(0, factor * (d[i+2] - 128) + 128 + brightness));
+            }
+            ctx.putImageData(iData, 0, 0);
+        },
+
+        _applySharpenKernel: function (ctx, w, h) {
+            var iData = ctx.getImageData(0, 0, w, h);
+            var d = iData.data;
+            var copy = new Uint8ClampedArray(d);
+            var k = [0,-1,0,-1,5,-1,0,-1,0];
+            for (var y = 1; y < h - 1; y++) {
+                for (var x = 1; x < w - 1; x++) {
+                    for (var ch = 0; ch < 3; ch++) {
+                        var sum = 0;
+                        for (var ky = -1; ky <= 1; ky++) {
+                            for (var kx = -1; kx <= 1; kx++) {
+                                sum += copy[((y+ky)*w+(x+kx))*4+ch] * k[(ky+1)*3+(kx+1)];
+                            }
+                        }
+                        d[(y*w+x)*4+ch] = Math.min(255, Math.max(0, sum));
+                    }
+                }
+            }
+            ctx.putImageData(iData, 0, 0);
+        },
+
+        _applySharpenTool: function () {
+            var page = this.state.pages[this.state.activeIdx];
+            if (!page) return;
+            this._pushUndo(page);
+            var ctx = page.editedCanvas.getContext('2d');
+            this._applySharpenKernel(ctx, page.editedCanvas.width, page.editedCanvas.height);
+            this._renderThumbs();
+            this._renderMainCanvas();
+            notify('Sharpened', 'success');
+        },
+
+        _rotatePage: function (dir) {
+            var page = this.state.pages[this.state.activeIdx];
+            if (!page) return;
+            this._pushUndo(page);
+            var src = page.editedCanvas;
+            var c = document.createElement('canvas');
+            c.width = src.height; c.height = src.width;
+            var ctx = c.getContext('2d');
+            ctx.translate(c.width / 2, c.height / 2);
+            ctx.rotate((dir === 'right' ? 90 : -90) * Math.PI / 180);
+            ctx.drawImage(src, -src.width / 2, -src.height / 2);
+            page.editedCanvas = c;
+            this._renderThumbs();
+            this._renderMainCanvas();
+        },
+
+        _applyPerspective: function () {
+            var page = this.state.pages[this.state.activeIdx];
+            if (!page) return;
+            this._pushUndo(page);
+            var src = page.editedCanvas;
+            var c = document.createElement('canvas');
+            var shrink = 0.03;
+            c.width = src.width; c.height = src.height;
+            var ctx = c.getContext('2d');
+            ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, c.width, c.height);
+            var dx = Math.round(src.width * shrink);
+            ctx.drawImage(src, 0, 0, src.width, src.height, dx, 0, src.width - dx * 2, src.height);
+            page.editedCanvas = c;
+            this._renderThumbs();
+            this._renderMainCanvas();
+            notify('Perspective correction applied', 'success');
+        },
+
+        _startCrop: function () {
+            var page = this.state.pages[this.state.activeIdx];
+            if (!page) return;
+            var mc = document.getElementById('cpdf-main-canvas');
+            var rect = mc.getBoundingClientRect();
+            var margin = 0.1;
+            this._cropState = {
+                active: true,
+                x: Math.round(rect.width * margin), y: Math.round(rect.height * margin),
+                w: Math.round(rect.width * (1 - margin * 2)), h: Math.round(rect.height * (1 - margin * 2)),
+                scaleX: mc.width / rect.width, scaleY: mc.height / rect.height,
+                dragging: null, startX: 0, startY: 0, origX: 0, origY: 0, origW: 0, origH: 0
+            };
+            document.getElementById('cpdf-crop-box').hidden = false;
+            document.getElementById('cpdf-crop-overlay').hidden = false;
+            this._updateCropBox();
+        },
+
+        _updateCropBox: function () {
+            var box = document.getElementById('cpdf-crop-box');
+            box.style.left = this._cropState.x + 'px';
+            box.style.top = this._cropState.y + 'px';
+            box.style.width = this._cropState.w + 'px';
+            box.style.height = this._cropState.h + 'px';
+        },
+
+        _applyCrop: function () {
+            var page = this.state.pages[this.state.activeIdx];
+            if (!page) return;
+            this._pushUndo(page);
+            var mc = document.getElementById('cpdf-main-canvas');
+            var rect = mc.getBoundingClientRect();
+            var scaleX = mc.width / rect.width, scaleY = mc.height / rect.height;
+            var sx = Math.round(this._cropState.x * scaleX), sy = Math.round(this._cropState.y * scaleY);
+            var sw = Math.round(this._cropState.w * scaleX), sh = Math.round(this._cropState.h * scaleY);
+            if (sw < 10 || sh < 10) { notify('Crop area too small', 'error'); return; }
+            var c = document.createElement('canvas');
+            c.width = sw; c.height = sh;
+            c.getContext('2d').drawImage(page.editedCanvas, sx, sy, sw, sh, 0, 0, sw, sh);
+            page.editedCanvas = c;
+            this._cancelCrop();
+            this._renderThumbs();
+            this._renderMainCanvas();
+            notify('Cropped', 'success');
+        },
+
+        _cancelCrop: function () {
+            this._cropState.active = false;
+            document.getElementById('cpdf-crop-box').hidden = true;
+            document.getElementById('cpdf-crop-overlay').hidden = true;
+            document.querySelectorAll('[data-cptool="crop"]').forEach(function (b) { b.classList.remove('active'); });
+        },
+
+        _initCropDrag: function () {
+            var self = this;
+            var wrap = document.getElementById('cpdf-preview-wrap');
+            wrap.addEventListener('pointerdown', function (e) {
+                if (!self._cropState.active) return;
+                var handle = e.target.closest('.cpdf-crop-handle');
+                var box = e.target.closest('.cpdf-crop-box');
+                if (!handle && !box) return;
+                e.preventDefault();
+                self._cropState.dragging = handle ? handle.dataset.handle : 'move';
+                self._cropState.startX = e.clientX; self._cropState.startY = e.clientY;
+                self._cropState.origX = self._cropState.x; self._cropState.origY = self._cropState.y;
+                self._cropState.origW = self._cropState.w; self._cropState.origH = self._cropState.h;
+            });
+            document.addEventListener('pointermove', function (e) {
+                if (!self._cropState.dragging) return;
+                e.preventDefault();
+                var dx = e.clientX - self._cropState.startX, dy = e.clientY - self._cropState.startY;
+                var d = self._cropState.dragging;
+                if (d === 'move') { self._cropState.x = self._cropState.origX + dx; self._cropState.y = self._cropState.origY + dy; }
+                else if (d === 'br') { self._cropState.w = Math.max(30, self._cropState.origW + dx); self._cropState.h = Math.max(30, self._cropState.origH + dy); }
+                else if (d === 'tl') { self._cropState.x = self._cropState.origX + dx; self._cropState.y = self._cropState.origY + dy; self._cropState.w = Math.max(30, self._cropState.origW - dx); self._cropState.h = Math.max(30, self._cropState.origH - dy); }
+                else if (d === 'tr') { self._cropState.y = self._cropState.origY + dy; self._cropState.w = Math.max(30, self._cropState.origW + dx); self._cropState.h = Math.max(30, self._cropState.origH - dy); }
+                else if (d === 'bl') { self._cropState.x = self._cropState.origX + dx; self._cropState.w = Math.max(30, self._cropState.origW - dx); self._cropState.h = Math.max(30, self._cropState.origH + dy); }
+                self._updateCropBox();
+            });
+            document.addEventListener('pointerup', function () { self._cropState.dragging = null; });
+        },
+
+        _pushUndo: function (page) {
+            page.undoStack.push(this._cloneCanvas(page.editedCanvas));
+            if (page.undoStack.length > 20) page.undoStack.shift();
+            page.redoStack = [];
+        },
+        _undo: function () {
+            var page = this.state.pages[this.state.activeIdx];
+            if (!page || !page.undoStack.length) return;
+            page.redoStack.push(this._cloneCanvas(page.editedCanvas));
+            page.editedCanvas = page.undoStack.pop();
+            this._renderThumbs(); this._renderMainCanvas();
+        },
+        _redo: function () {
+            var page = this.state.pages[this.state.activeIdx];
+            if (!page || !page.redoStack.length) return;
+            page.undoStack.push(this._cloneCanvas(page.editedCanvas));
+            page.editedCanvas = page.redoStack.pop();
+            this._renderThumbs(); this._renderMainCanvas();
+        },
+
+        _duplicatePage: function () {
+            var page = this.state.pages[this.state.activeIdx];
+            if (!page || this.state.pages.length >= 50) return;
+            this.state.pages.splice(this.state.activeIdx + 1, 0, {
+                id: ++this.state.idCounter, originalImg: page.originalImg,
+                editedCanvas: this._cloneCanvas(page.editedCanvas),
+                filter: page.filter, brightness: page.brightness, contrast: page.contrast,
+                undoStack: [], redoStack: []
+            });
+            this._renderThumbs();
+            this._selectPage(this.state.activeIdx + 1);
+            notify('Page duplicated', 'success');
+        },
+        _deletePage: function () {
+            if (this.state.pages.length <= 1) { this.state.pages = []; this._showUpload(); return; }
+            this.state.pages.splice(this.state.activeIdx, 1);
+            if (this.state.activeIdx >= this.state.pages.length) this.state.activeIdx = this.state.pages.length - 1;
+            this._renderThumbs();
+            this._selectPage(this.state.activeIdx);
+            notify('Page deleted', 'success');
+        },
+
+        _closeAllPanels: function () {
+            document.getElementById('cpdf-adjust-panel').hidden = true;
+            this._cancelCrop();
+            document.querySelectorAll('[data-cptool]').forEach(function (b) { b.classList.remove('active'); });
+        },
+
+        _openCamera: async function () {
+            try {
+                this._cameraStream = await navigator.mediaDevices.getUserMedia({
+                    video: { facingMode: 'environment', width: { ideal: 1920 }, height: { ideal: 1080 } }
+                });
+                document.getElementById('cpdf-camera-video').srcObject = this._cameraStream;
+                document.getElementById('cpdf-camera-modal').classList.add('active');
+            } catch (e) { notify('Camera not available', 'error'); }
+        },
+        _capturePhoto: function () {
+            var self = this;
+            var video = document.getElementById('cpdf-camera-video');
+            var canvas = document.getElementById('cpdf-camera-canvas');
+            canvas.width = video.videoWidth; canvas.height = video.videoHeight;
+            canvas.getContext('2d').drawImage(video, 0, 0);
+            var img = new Image();
+            img.onload = function () {
+                var c = self._imgToCanvas(img);
+                self.state.pages.push({
+                    id: ++self.state.idCounter, originalImg: img, editedCanvas: c,
+                    filter: 'original', brightness: 0, contrast: 0, undoStack: [], redoStack: []
+                });
+                self._showEditor();
+                self._renderThumbs();
+                self._selectPage(self.state.pages.length - 1);
+                self._closeCamera();
+                notify('Photo captured!', 'success');
+            };
+            img.src = canvas.toDataURL('image/jpeg', 0.92);
+        },
+        _closeCamera: function () {
+            if (this._cameraStream) { this._cameraStream.getTracks().forEach(function (t) { t.stop(); }); this._cameraStream = null; }
+            document.getElementById('cpdf-camera-modal').classList.remove('active');
+        },
+
+        _initSignaturePad: function () {
+            var self = this;
+            var canvas = document.getElementById('cpdf-sig-canvas');
+            self._sigCtx = canvas.getContext('2d');
+            self._sigCtx.strokeStyle = '#fff';
+            self._sigCtx.lineWidth = 2.5;
+            self._sigCtx.lineCap = 'round';
+            self._sigCtx.lineJoin = 'round';
+            canvas.addEventListener('pointerdown', function (e) {
+                self._sigDrawing = true;
+                self._sigCtx.beginPath();
+                var rect = canvas.getBoundingClientRect();
+                self._sigCtx.moveTo((e.clientX - rect.left) * (canvas.width / rect.width), (e.clientY - rect.top) * (canvas.height / rect.height));
+            });
+            canvas.addEventListener('pointermove', function (e) {
+                if (!self._sigDrawing) return;
+                var rect = canvas.getBoundingClientRect();
+                self._sigCtx.lineTo((e.clientX - rect.left) * (canvas.width / rect.width), (e.clientY - rect.top) * (canvas.height / rect.height));
+                self._sigCtx.stroke();
+            });
+            canvas.addEventListener('pointerup', function () { self._sigDrawing = false; });
+            canvas.addEventListener('pointerleave', function () { self._sigDrawing = false; });
+        },
+
+        _showPreviewModal: function () {
+            var self = this;
+            var container = document.getElementById('cpdf-preview-pages');
+            container.innerHTML = '';
+            self.state.pages.forEach(function (page, idx) {
+                var c = document.createElement('canvas');
+                var src = page.editedCanvas;
+                var scale = Math.min(1, 600 / src.width);
+                c.width = Math.round(src.width * scale); c.height = Math.round(src.height * scale);
+                var ctx = c.getContext('2d');
+                ctx.drawImage(src, 0, 0, c.width, c.height);
+                if (page.filter !== 'original') self._applyFilterToCtx(ctx, c.width, c.height, page.filter);
+                if (page.brightness !== 0 || page.contrast !== 0) self._applyBrightnessContrast(ctx, c.width, c.height, page.brightness, page.contrast);
+                var label = document.createElement('p');
+                label.style.cssText = 'color:var(--text3);font-size:.8rem;margin-top:4px';
+                label.textContent = 'Page ' + (idx + 1);
+                c.style.cssText = 'max-width:100%;border:1px solid var(--border);border-radius:8px;box-shadow:var(--shadow);background:#fff';
+                container.append(c, label);
+            });
+            document.getElementById('cpdf-preview-modal').classList.add('active');
+        },
+
+        _generatePDF: async function () {
+            var self = this;
+            if (!self.state.pages.length) { notify('Add images first', 'error'); return; }
+
+            var fileName = sanitize(document.getElementById('cpdf-filename').value.trim()) || 'Scanned Document';
+            var pageSize = document.getElementById('cpdf-pagesize').value;
+            var orientation = document.getElementById('cpdf-orientation').value;
+            var margin = parseFloat(document.getElementById('cpdf-margin').value) * 2.835;
+            var quality = parseFloat(document.getElementById('cpdf-quality').value);
+            var addPageNums = document.getElementById('cpdf-pagenums').checked;
+            var watermarkEnabled = document.getElementById('cpdf-watermark-chk').checked;
+            var watermarkText = sanitize(document.getElementById('cpdf-watermark-text').value.trim());
+            var ocrEnabled = document.getElementById('cpdf-ocr-chk').checked;
+            var signEnabled = document.getElementById('cpdf-sig-chk').checked;
+
+            document.getElementById('cpdf-settings-modal').classList.remove('active');
+            document.getElementById('cpdf-progress').hidden = false;
+
+            var setProgress = function (pct, text) {
+                document.getElementById('cpdf-progress-fill').style.width = pct + '%';
+                document.getElementById('cpdf-progress-pct').textContent = Math.round(pct) + '%';
+                if (text) document.getElementById('cpdf-progress-text').textContent = text;
+            };
+
+            try {
+                var pdfDoc = await PDFDocument.create();
+                var totalPages = self.state.pages.length;
+                var PAGE_SIZES = { a4: [595.28, 841.89], letter: [612, 792], legal: [612, 1008], fit: null };
+                var ocrTexts = [];
+
+                for (var i = 0; i < totalPages; i++) {
+                    setProgress((i / totalPages) * 80, 'Processing page ' + (i + 1) + ' of ' + totalPages);
+                    await new Promise(function (r) { setTimeout(r, 10); });
+
+                    var page = self.state.pages[i];
+                    var finalCanvas = self._cloneCanvas(page.editedCanvas);
+                    var fCtx = finalCanvas.getContext('2d');
+                    if (page.filter !== 'original') self._applyFilterToCtx(fCtx, finalCanvas.width, finalCanvas.height, page.filter);
+                    if (page.brightness !== 0 || page.contrast !== 0) self._applyBrightnessContrast(fCtx, finalCanvas.width, finalCanvas.height, page.brightness, page.contrast);
+
+                    var outCanvas = finalCanvas;
+                    var maxDim = quality >= 0.9 ? 3000 : (quality >= 0.7 ? 2400 : 1600);
+                    if (finalCanvas.width > maxDim || finalCanvas.height > maxDim) {
+                        var scale = maxDim / Math.max(finalCanvas.width, finalCanvas.height);
+                        var rc = document.createElement('canvas');
+                        rc.width = Math.round(finalCanvas.width * scale);
+                        rc.height = Math.round(finalCanvas.height * scale);
+                        rc.getContext('2d').drawImage(finalCanvas, 0, 0, rc.width, rc.height);
+                        outCanvas = rc;
+                    }
+
+                    var imgBytes = await new Promise(function (resolve) {
+                        outCanvas.toBlob(function (blob) { blob.arrayBuffer().then(resolve); }, 'image/jpeg', quality);
+                    });
+
+                    var img = await pdfDoc.embedJpg(imgBytes);
+                    var pw, ph;
+                    if (pageSize === 'fit') { pw = img.width + margin * 2; ph = img.height + margin * 2; }
+                    else { pw = PAGE_SIZES[pageSize][0]; ph = PAGE_SIZES[pageSize][1]; if (orientation === 'landscape') { var tmp = pw; pw = ph; ph = tmp; } }
+
+                    var pdfPage = pdfDoc.addPage([pw, ph]);
+                    var availW = pw - margin * 2, availH = ph - margin * 2;
+                    var sc = Math.min(availW / img.width, availH / img.height, 1);
+                    var drawW = img.width * sc, drawH = img.height * sc;
+                    pdfPage.drawImage(img, { x: margin + (availW - drawW) / 2, y: margin + (availH - drawH) / 2, width: drawW, height: drawH });
+
+                    if (watermarkEnabled && watermarkText) {
+                        var font = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+                        var wmSize = Math.min(pw, ph) * 0.08;
+                        pdfPage.drawText(watermarkText, { x: (pw - font.widthOfTextAtSize(watermarkText, wmSize)) / 2, y: ph / 2, size: wmSize, font: font, color: rgb(0.7, 0.7, 0.7), opacity: 0.25, rotate: degrees(-45) });
+                    }
+                    if (addPageNums) {
+                        var numFont = await pdfDoc.embedFont(StandardFonts.Helvetica);
+                        var numT = (i + 1) + ' / ' + totalPages;
+                        pdfPage.drawText(numT, { x: (pw - numFont.widthOfTextAtSize(numT, 9)) / 2, y: 16, size: 9, font: numFont, color: rgb(0.5, 0.5, 0.5) });
+                    }
+                    if (signEnabled && self.state.signatureData && i === totalPages - 1) {
+                        try {
+                            var sigBytes = await fetch(self.state.signatureData).then(function (r) { return r.arrayBuffer(); });
+                            var sigImg = await pdfDoc.embedPng(sigBytes);
+                            var sigSc = Math.min(150 / sigImg.width, 60 / sigImg.height);
+                            pdfPage.drawImage(sigImg, { x: pw - margin - sigImg.width * sigSc - 10, y: margin + 10, width: sigImg.width * sigSc, height: sigImg.height * sigSc });
+                        } catch (_) {}
+                    }
+                    if (ocrEnabled && typeof Tesseract !== 'undefined') {
+                        setProgress((i / totalPages) * 80 + 5, 'OCR page ' + (i + 1) + '...');
+                        try {
+                            var result = await Tesseract.recognize(outCanvas, 'eng');
+                            if (result.data && result.data.text) ocrTexts.push('--- Page ' + (i + 1) + ' ---\n' + result.data.text);
+                        } catch (_) {}
+                    }
+                }
+
+                setProgress(90, 'Finalizing...');
+                await new Promise(function (r) { setTimeout(r, 10); });
+
+                var pdfBytes = await pdfDoc.save();
+                var blob = new Blob([pdfBytes], { type: 'application/pdf' });
+                self.state.generatedBlob = blob;
+                self.state.generatedName = fileName;
+
+                var sizeMB = (blob.size / (1024 * 1024)).toFixed(2);
+                var infoEl = document.getElementById('cpdf-result-info');
+                infoEl.textContent = fileName + '.pdf · ' + totalPages + ' page' + (totalPages > 1 ? 's' : '') + ' · ' + sizeMB + ' MB';
+
+                if (ocrTexts.length) {
+                    var ocrBlob = new Blob([ocrTexts.join('\n\n')], { type: 'text/plain' });
+                    var ocrUrl = URL.createObjectURL(ocrBlob);
+                    infoEl.innerHTML += '<br><a href="' + ocrUrl + '" download="' + esc(fileName) + '_OCR.txt" style="color:var(--accent-hover);text-decoration:underline;font-size:.85rem">Download OCR text</a>';
+                }
+
+                setProgress(100, 'Done!');
+                await new Promise(function (r) { setTimeout(r, 400); });
+                document.getElementById('cpdf-progress').hidden = true;
+                self._showResultSection();
+                notify('PDF generated!', 'success');
+            } catch (err) {
+                console.error('PDF generation error:', err);
+                document.getElementById('cpdf-progress').hidden = true;
+                notify('Failed: ' + err.message, 'error');
+            }
+        },
+
+        _downloadPDF: function () {
+            if (!this.state.generatedBlob) return;
+            dl(this.state.generatedBlob, (this.state.generatedName || 'document') + '.pdf');
+        },
+        _sharePDF: async function () {
+            if (!this.state.generatedBlob) return;
+            if (navigator.share) {
+                try {
+                    var file = new File([this.state.generatedBlob], (this.state.generatedName || 'document') + '.pdf', { type: 'application/pdf' });
+                    await navigator.share({ files: [file], title: this.state.generatedName });
+                } catch (_) { this._downloadPDF(); }
+            } else { this._downloadPDF(); notify('Share not supported — downloaded instead', 'info'); }
         }
     };
 
