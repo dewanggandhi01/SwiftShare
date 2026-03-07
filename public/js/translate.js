@@ -1,4 +1,4 @@
-/* ==================== SwiftTranslate – Main JS ==================== */
+/* ==================== DΞBO Translate – Main JS ==================== */
 (function(){
 'use strict';
 
