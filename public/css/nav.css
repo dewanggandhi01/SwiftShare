@@ -22,11 +22,11 @@
 .warning-banner {
     width: 100%; overflow: hidden;
     background: #e53935;
-    padding: 4px 0; position: relative; z-index: 300;
+    padding: 2px 0; position: relative; z-index: 250;
 }
 .warning-text {
     display: inline-block; white-space: nowrap;
-    padding-left: 100%; color: #fff; font-weight: 600; font-size: .78rem;
+    padding-left: 100%; color: #fff; font-weight: 600; font-size: .72rem;
     letter-spacing: .3px;
     animation: scrollBanner 18s linear infinite;
 }
