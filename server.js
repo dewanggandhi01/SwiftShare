@@ -34,6 +34,7 @@ app.use(express.static(path.join(__dirname, 'public'), {
     etag: true
 }));
 app.use('/chat-uploads', express.static(config.CHAT_UPLOAD_DIR));
+app.use('/promo-images', express.static(path.join(__dirname, 'uploads', 'pictures')));
 app.use(express.json());
 
 // ── Serve index.html at root ───────────────────────────────────────────

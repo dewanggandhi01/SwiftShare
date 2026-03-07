@@ -24,6 +24,9 @@
     background: #e53935;
     padding: 2px 0; position: relative; z-index: 250;
 }
+.nav-transparent ~ .warning-banner {
+    margin-top: var(--nav-top-h);
+}
 .warning-text {
     display: inline-block; white-space: nowrap;
     padding-left: 100%; color: #fff; font-weight: 600; font-size: .72rem;
