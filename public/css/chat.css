@@ -639,6 +639,48 @@ input, textarea { font: inherit; color: var(--text); touch-action: manipulation;
 .stg-device { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--border); }
 .stg-device-icon { font-size: 1.5rem; width: 40px; height: 40px; background: var(--bg3); border-radius: 10px; display: flex; align-items: center; justify-content: center; }
 .stg-device-info { flex: 1; }
+
+/* ══════════════════════════════════════════════════════════════
+   RANDOM CHAT LOBBY
+   ══════════════════════════════════════════════════════════════ */
+.btn-random { background: linear-gradient(135deg, #f59e0b, #ef4444); box-shadow: 0 4px 16px rgba(239,68,68,.3); }
+.btn-random:hover { box-shadow: 0 6px 24px rgba(239,68,68,.4); }
+
+.random-modal { max-width: 520px; width: 100%; }
+.random-info { text-align: center; color: var(--text2); font-size: .88rem; margin-bottom: 16px; line-height: 1.5; }
+.random-status { text-align: center; margin-bottom: 20px; }
+.random-status .btn-primary { max-width: 340px; }
+.random-status .btn-go-offline { background: linear-gradient(135deg, #ef4444, #dc2626); }
+
+.random-lobby-section h4 { font-size: .9rem; font-weight: 600; color: var(--text2); margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
+.random-count { background: var(--accent); color: #fff; font-size: .72rem; padding: 2px 8px; border-radius: 10px; font-weight: 700; }
+
+.random-lobby-list { max-height: 300px; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; }
+.random-lobby-list::-webkit-scrollbar { width: 4px; }
+.random-lobby-list::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 4px; }
+
+.random-empty { text-align: center; color: var(--text3); font-size: .85rem; padding: 32px 16px; }
+
+.random-card {
+    display: flex; align-items: center; gap: 12px;
+    padding: 12px 14px; border-radius: var(--rad);
+    background: var(--bg); border: 1px solid var(--border);
+    transition: var(--transition); cursor: default;
+}
+.random-card:hover { border-color: var(--accent); background: var(--accent-light); }
+.random-card-avatar { font-size: 1.6rem; width: 42px; height: 42px; border-radius: 50%; background: var(--bg3); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.random-card-info { flex: 1; min-width: 0; }
+.random-card-tag { font-weight: 600; font-size: .9rem; color: var(--text); }
+.random-card-time { font-size: .75rem; color: var(--text3); }
+.random-card-btn {
+    background: linear-gradient(135deg, #6366f1, #818cf8); color: #fff;
+    border: none; padding: 7px 16px; border-radius: 8px;
+    font-weight: 600; font-size: .82rem; cursor: pointer;
+    transition: var(--transition); white-space: nowrap;
+}
+.random-card-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(99,102,241,.3); }
+.random-card-self { opacity: .5; pointer-events: none; }
+.random-card-self .random-card-btn { display: none; }
 .stg-device-name { font-size: .9rem; font-weight: 600; display: block; }
 .stg-device-detail { font-size: .76rem; color: var(--text2); }
 

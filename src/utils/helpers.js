@@ -6,6 +6,7 @@ const transfers = new Map();
 const chatUsers = new Map();   // userId -> user object
 const chatRooms = new Map();   // roomCode -> room object
 const socketToUser = new Map(); // socketId -> userId
+const randomLobby = new Map();  // oderId -> { userId, username, avatar, socketId, tag, joinedAt }
 
 function generateCode() {
     let code;
@@ -65,6 +66,7 @@ module.exports = {
     chatUsers,
     chatRooms,
     socketToUser,
+    randomLobby,
     generateCode,
     generateLinkId,
     generateChatCode,

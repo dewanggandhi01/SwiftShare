@@ -87,6 +87,7 @@
             <div class="sidebar-user" id="sidebar-user"></div>
             <div class="sidebar-actions">
                 <button class="icon-btn" id="btn-new-chat" title="New Chat">➕</button>
+                <button class="icon-btn" id="btn-random-chat" title="Talk to Random">🎲</button>
                 <button class="icon-btn" id="btn-settings" title="Settings">⚙️</button>
                 <button class="icon-btn" id="btn-toggle-dark" title="Toggle Dark Mode">🌙</button>
             </div>
@@ -110,7 +111,10 @@
             <h2>SwiftChat</h2>
             <p>Send and receive messages instantly.<br>Select a chat or create a new one to get started.</p>
             <p style="font-size:.78rem;color:var(--text3);margin-bottom:20px;">🔒 End-to-end encrypted</p>
-            <button class="btn-primary" id="btn-new-chat3">New Chat</button>
+            <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;">
+                <button class="btn-primary" id="btn-new-chat3">New Chat</button>
+                <button class="btn-primary btn-random" id="btn-random-chat2">🎲 Talk to Random</button>
+            </div>
         </div>
 
         <!-- Active chat -->
@@ -351,6 +355,30 @@
                 <div class="code-input-wrap">
                     <input type="text" class="field-input code-field" id="join-code" placeholder="Enter code..." maxlength="10" autocomplete="off">
                     <button class="btn-primary btn-sm" id="btn-join">Connect</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Random Chat Lobby Overlay -->
+<div class="modal-overlay" id="random-overlay" hidden>
+    <div class="modal random-modal">
+        <div class="modal-header">
+            <h3>🎲 Talk to a Random Stranger</h3>
+            <button class="icon-btn" id="random-close">✕</button>
+        </div>
+        <div class="modal-body">
+            <div class="random-info">
+                <p>Go online and wait for someone to connect, or browse available strangers and pick one to chat with!</p>
+            </div>
+            <div class="random-status" id="random-status">
+                <button class="btn-primary" id="btn-go-online">🟢 Go Online — Let Strangers Find Me</button>
+            </div>
+            <div class="random-lobby-section">
+                <h4>Available Strangers <span class="random-count" id="random-count">0</span></h4>
+                <div class="random-lobby-list" id="random-lobby-list">
+                    <div class="random-empty">No strangers online yet. Be the first to go online!</div>
                 </div>
             </div>
         </div>

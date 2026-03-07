@@ -1,4 +1,4 @@
-const { chatUsers, chatRooms, socketToUser, generateChatCode, generateMsgId } = require('../utils/helpers');
+const { chatUsers, chatRooms, socketToUser, randomLobby, generateChatCode, generateMsgId } = require('../utils/helpers');
 const config = require('../config');
 
 module.exports = function initSocket(io) {
@@ -291,15 +291,133 @@ module.exports = function initSocket(io) {
             }
         });
 
+        // ═══════════════════════════════════════════════════════════════
+        // RANDOM CHAT LOBBY
+        // ═══════════════════════════════════════════════════════════════
+
+        socket.on('random:join-lobby', () => {
+            const uid = socketToUser.get(socket.id);
+            if (!uid || !chatUsers.has(uid)) return;
+            const user = chatUsers.get(uid);
+
+            // Don't add if already in lobby
+            if (randomLobby.has(uid)) return;
+
+            const tag = 'Stranger #' + generateChatCode().substring(0, 4);
+            randomLobby.set(uid, {
+                userId: uid,
+                username: user.username,
+                avatar: user.avatar,
+                socketId: socket.id,
+                tag: tag,
+                joinedAt: Date.now()
+            });
+
+            // Broadcast updated lobby to everyone in the lobby room
+            socket.join('random-lobby');
+            io.to('random-lobby').emit('random:lobby-update', getLobbyList());
+        });
+
+        socket.on('random:leave-lobby', () => {
+            const uid = socketToUser.get(socket.id);
+            if (!uid) return;
+            randomLobby.delete(uid);
+            socket.leave('random-lobby');
+            io.to('random-lobby').emit('random:lobby-update', getLobbyList());
+        });
+
+        socket.on('random:get-lobby', () => {
+            socket.emit('random:lobby-update', getLobbyList());
+        });
+
+        socket.on('random:connect', (data) => {
+            if (!data || !data.targetUserId) return;
+            const uid = socketToUser.get(socket.id);
+            if (!uid || !chatUsers.has(uid)) return;
+            const me = chatUsers.get(uid);
+
+            const targetId = String(data.targetUserId);
+            const targetEntry = randomLobby.get(targetId);
+            if (!targetEntry) {
+                socket.emit('random:error', { message: 'This stranger is no longer available.' });
+                return;
+            }
+
+            const targetUser = chatUsers.get(targetId);
+            if (!targetUser) {
+                socket.emit('random:error', { message: 'User not found.' });
+                return;
+            }
+
+            // Remove both from lobby
+            randomLobby.delete(uid);
+            randomLobby.delete(targetId);
+            socket.leave('random-lobby');
+
+            // Create a chat room between them
+            const roomCode = generateChatCode();
+            const room = {
+                code: roomCode,
+                users: [uid, targetId],
+                messages: [{
+                    id: generateMsgId(),
+                    roomCode: roomCode,
+                    senderId: 'system',
+                    text: 'Random chat started! Say hi to your new stranger.',
+                    type: 'system',
+                    timestamp: Date.now(),
+                    status: 'read'
+                }],
+                createdAt: Date.now()
+            };
+            chatRooms.set(roomCode, room);
+            me.rooms.add(roomCode);
+            targetUser.rooms.add(roomCode);
+
+            socket.join('chat:' + roomCode);
+            socket.emit('chat:room-joined', {
+                code: roomCode,
+                peerUser: { id: targetUser.id, username: targetUser.username, avatar: targetUser.avatar, online: targetUser.online, lastSeen: targetUser.lastSeen },
+                messages: room.messages
+            });
+
+            // Notify target
+            if (targetUser.socketId) {
+                const targetSocket = io.sockets.sockets.get(targetUser.socketId);
+                if (targetSocket) {
+                    targetSocket.leave('random-lobby');
+                    targetSocket.join('chat:' + roomCode);
+                    targetSocket.emit('chat:room-joined', {
+                        code: roomCode,
+                        peerUser: { id: me.id, username: me.username, avatar: me.avatar, online: me.online, lastSeen: me.lastSeen },
+                        messages: room.messages
+                    });
+                    targetSocket.emit('random:matched');
+                }
+            }
+
+            socket.emit('random:matched');
+
+            // Broadcast updated lobby
+            io.to('random-lobby').emit('random:lobby-update', getLobbyList());
+        });
+
         // ── Disconnect ──
         socket.on('disconnect', () => {
             const uid = socketToUser.get(socket.id);
-            if (uid && chatUsers.has(uid)) {
-                const user = chatUsers.get(uid);
-                user.online = false;
-                user.lastSeen = Date.now();
-                user.socketId = null;
-                broadcastUserStatus(io, uid, false);
+            if (uid) {
+                // Remove from random lobby
+                if (randomLobby.has(uid)) {
+                    randomLobby.delete(uid);
+                    io.to('random-lobby').emit('random:lobby-update', getLobbyList());
+                }
+                if (chatUsers.has(uid)) {
+                    const user = chatUsers.get(uid);
+                    user.online = false;
+                    user.lastSeen = Date.now();
+                    user.socketId = null;
+                    broadcastUserStatus(io, uid, false);
+                }
             }
             socketToUser.delete(socket.id);
         });
@@ -316,4 +434,17 @@ function broadcastUserStatus(io, userId, online) {
             lastSeen: user.lastSeen
         });
     });
+}
+
+function getLobbyList() {
+    const list = [];
+    for (const [, entry] of randomLobby) {
+        list.push({
+            oderId: entry.userId,
+            tag: entry.tag,
+            avatar: entry.avatar,
+            joinedAt: entry.joinedAt
+        });
+    }
+    return list;
 }

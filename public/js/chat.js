@@ -189,6 +189,13 @@
 
         modalOverlay.addEventListener('click', e => { if (e.target === modalOverlay) closeModals(); });
         forwardOverlay.addEventListener('click', e => { if (e.target === forwardOverlay) forwardOverlay.hidden = true; });
+
+        // Random chat
+        $('btn-random-chat').addEventListener('click', openRandomLobby);
+        $('btn-random-chat2').addEventListener('click', openRandomLobby);
+        $('random-close').addEventListener('click', closeRandomLobby);
+        $('btn-go-online').addEventListener('click', toggleGoOnline);
+        $('random-overlay').addEventListener('click', e => { if (e.target === $('random-overlay')) closeRandomLobby(); });
     }
 
     function doSetup() {
@@ -329,6 +336,19 @@
                 });
             }
         });
+
+        // Random chat events
+        socket.on('random:lobby-update', renderLobbyList);
+
+        socket.on('random:matched', () => {
+            isInLobby = false;
+            $('random-overlay').hidden = true;
+            updateGoOnlineBtn();
+        });
+
+        socket.on('random:error', data => {
+            alert(data.message || 'Something went wrong.');
+        });
     }
 
     /* ═══════════════════════════════════════════════════════════════
@@ -397,6 +417,83 @@
     }
 
     function closeModals() { modalOverlay.hidden = true; }
+
+    /* ═══════════════════════════════════════════════════════════════
+       RANDOM CHAT LOBBY
+       ═══════════════════════════════════════════════════════════════ */
+    let isInLobby = false;
+
+    function openRandomLobby() {
+        $('random-overlay').hidden = false;
+        socket.emit('random:get-lobby');
+        updateGoOnlineBtn();
+    }
+
+    function closeRandomLobby() {
+        $('random-overlay').hidden = true;
+        if (isInLobby) {
+            isInLobby = false;
+            socket.emit('random:leave-lobby');
+            updateGoOnlineBtn();
+        }
+    }
+
+    function toggleGoOnline() {
+        if (isInLobby) {
+            isInLobby = false;
+            socket.emit('random:leave-lobby');
+        } else {
+            isInLobby = true;
+            socket.emit('random:join-lobby');
+        }
+        updateGoOnlineBtn();
+    }
+
+    function updateGoOnlineBtn() {
+        var btn = $('btn-go-online');
+        if (isInLobby) {
+            btn.textContent = '🔴 Go Offline — Leave Lobby';
+            btn.className = 'btn-primary btn-go-offline';
+        } else {
+            btn.textContent = '🟢 Go Online — Let Strangers Find Me';
+            btn.className = 'btn-primary';
+        }
+    }
+
+    function renderLobbyList(list) {
+        var container = $('random-lobby-list');
+        $('random-count').textContent = list.length;
+        if (list.length === 0) {
+            container.innerHTML = '<div class="random-empty">No strangers online yet. Be the first to go online!</div>';
+            return;
+        }
+        container.innerHTML = list.map(function (entry) {
+            var isSelf = entry.oderId === me.id;
+            var ago = timeAgo(entry.joinedAt);
+            return '<div class="random-card' + (isSelf ? ' random-card-self' : '') + '">' +
+                '<div class="random-card-avatar">' + esc(entry.avatar) + '</div>' +
+                '<div class="random-card-info">' +
+                    '<div class="random-card-tag">' + esc(entry.tag) + (isSelf ? ' (You)' : '') + '</div>' +
+                    '<div class="random-card-time">Online ' + ago + '</div>' +
+                '</div>' +
+                (isSelf ? '' : '<button class="random-card-btn" data-uid="' + esc(entry.oderId) + '">Chat</button>') +
+            '</div>';
+        }).join('');
+
+        container.querySelectorAll('.random-card-btn').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                var targetId = btn.getAttribute('data-uid');
+                socket.emit('random:connect', { targetUserId: targetId });
+            });
+        });
+    }
+
+    function timeAgo(ts) {
+        var diff = Math.floor((Date.now() - ts) / 1000);
+        if (diff < 60) return 'just now';
+        if (diff < 3600) return Math.floor(diff / 60) + 'm ago';
+        return Math.floor(diff / 3600) + 'h ago';
+    }
 
     function copyMyCode() {
         const code = $('my-code').textContent;
