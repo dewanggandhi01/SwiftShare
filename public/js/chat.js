@@ -425,7 +425,7 @@
 
     function openRandomLobby() {
         $('random-overlay').hidden = false;
-        socket.emit('random:get-lobby');
+        socket.emit('random:watch-lobby');
         updateGoOnlineBtn();
     }
 
@@ -434,8 +434,9 @@
         if (isInLobby) {
             isInLobby = false;
             socket.emit('random:leave-lobby');
-            updateGoOnlineBtn();
         }
+        socket.emit('random:unwatch-lobby');
+        updateGoOnlineBtn();
     }
 
     function toggleGoOnline() {

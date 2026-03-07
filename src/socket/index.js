@@ -295,6 +295,18 @@ module.exports = function initSocket(io) {
         // RANDOM CHAT LOBBY
         // ═══════════════════════════════════════════════════════════════
 
+        // Join the socket room to receive real-time lobby updates (browsing)
+        socket.on('random:watch-lobby', () => {
+            socket.join('random-lobby');
+            socket.emit('random:lobby-update', getLobbyList());
+        });
+
+        // Leave the socket room (stop receiving lobby updates)
+        socket.on('random:unwatch-lobby', () => {
+            socket.leave('random-lobby');
+        });
+
+        // Go online — make yourself visible in the lobby
         socket.on('random:join-lobby', () => {
             const uid = socketToUser.get(socket.id);
             if (!uid || !chatUsers.has(uid)) return;
@@ -313,21 +325,17 @@ module.exports = function initSocket(io) {
                 joinedAt: Date.now()
             });
 
-            // Broadcast updated lobby to everyone in the lobby room
+            // Ensure they're in the room too
             socket.join('random-lobby');
             io.to('random-lobby').emit('random:lobby-update', getLobbyList());
         });
 
+        // Go offline — remove yourself from lobby but stay watching
         socket.on('random:leave-lobby', () => {
             const uid = socketToUser.get(socket.id);
             if (!uid) return;
             randomLobby.delete(uid);
-            socket.leave('random-lobby');
             io.to('random-lobby').emit('random:lobby-update', getLobbyList());
-        });
-
-        socket.on('random:get-lobby', () => {
-            socket.emit('random:lobby-update', getLobbyList());
         });
 
         socket.on('random:connect', (data) => {
