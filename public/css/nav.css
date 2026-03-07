@@ -17,6 +17,31 @@
 }
 
 /* ═══════════════════════════════════════════════════════════════════
+   WARNING BANNER — sliding incognito notice
+   ═══════════════════════════════════════════════════════════════════ */
+.warning-banner {
+    width: 100%; overflow: hidden;
+    background: linear-gradient(90deg, #FFD54F, #FFC107);
+    padding: 8px 0; position: relative; z-index: 300;
+}
+.warning-text {
+    display: inline-block; white-space: nowrap;
+    padding-left: 100%; color: #000; font-weight: 600; font-size: .85rem;
+    animation: scrollBanner 18s linear infinite;
+}
+.warning-close {
+    position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
+    background: none; border: none; cursor: pointer;
+    font-size: 1rem; color: #000; font-weight: 700; line-height: 1;
+    padding: 4px 8px;
+}
+.warning-close:hover { opacity: .6; }
+@keyframes scrollBanner {
+    0%   { transform: translateX(0); }
+    100% { transform: translateX(-100%); }
+}
+
+/* ═══════════════════════════════════════════════════════════════════
    TOP BAR — always visible (brand + desktop links)
    ═══════════════════════════════════════════════════════════════════ */
 .main-nav {
