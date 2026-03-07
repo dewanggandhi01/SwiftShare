@@ -2,7 +2,7 @@
     'use strict';
 
     /* ═══════════════════════════════════════════════════════════════
-       SwiftChat – Client
+       DΞBO CHAT – Client
        ═══════════════════════════════════════════════════════════════ */
 
     const socket = io();
@@ -1271,7 +1271,7 @@
 
     // Settings state (persisted in localStorage)
     let settings = {
-        bio: 'Hey there! I\'m using SwiftChat',
+        bio: 'Hey there! I\'m using DΞBO CHAT',
         username: '',
         status: '🟢 Available',
         privacy: { lastSeen: 'everyone', profilePhoto: 'everyone', onlineStatus: 'everyone', readReceipts: true },
@@ -1303,7 +1303,7 @@
         if (me) {
             $('settings-avatar-display').textContent = me.avatar || '😀';
             $('settings-name-display').textContent = me.username || 'User';
-            $('settings-bio-display').textContent = settings.bio || 'Hey there! I\'m using SwiftChat';
+            $('settings-bio-display').textContent = settings.bio || 'Hey there! I\'m using DΞBO CHAT';
         }
     }
 
@@ -1403,7 +1403,7 @@
             $('sidebar-user').innerHTML = '<span class="avatar">' + esc(me.avatar) + '</span>' + esc(me.username);
             $('settings-avatar-display').textContent = me.avatar;
             $('settings-name-display').textContent = me.username;
-            $('settings-bio-display').textContent = settings.bio || 'Hey there! I\'m using SwiftChat';
+            $('settings-bio-display').textContent = settings.bio || 'Hey there! I\'m using DΞBO CHAT';
             // Re-register with server
             socket.emit('chat:register', { userId: me.id, username: me.username, avatar: me.avatar });
             this.textContent = '✅ Saved!';
@@ -1526,7 +1526,7 @@
                 '<div class="stg-section-title">Encryption</div>' +
                 '<div class="stg-info-card">' +
                     '<p>🔐 <strong>End-to-end encryption</strong></p>' +
-                    '<p>Messages between you and your contacts are secured with end-to-end encryption. No one, not even SwiftChat, can read or listen to them.</p>' +
+                    '<p>Messages between you and your contacts are secured with end-to-end encryption. No one, not even DΞBO CHAT, can read or listen to them.</p>' +
                 '</div>' +
             '</div>' +
             '<div class="stg-section">' +
@@ -1662,7 +1662,7 @@
             const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
             const a = document.createElement('a');
             a.href = URL.createObjectURL(blob);
-            a.download = 'swiftchat-backup-' + new Date().toISOString().slice(0, 10) + '.json';
+            a.download = 'debo-chat-backup-' + new Date().toISOString().slice(0, 10) + '.json';
             a.click();
             URL.revokeObjectURL(a.href);
             this.textContent = '✅ Exported!';
@@ -1798,7 +1798,7 @@
             '</div>' +
             '<div class="stg-section">' +
                 '<div class="stg-section-title">Link a New Device</div>' +
-                '<div class="stg-info-card"><p>📱 Scan a QR code from another device to link it to your account. Open SwiftChat on the other device and scan the QR code shown here.</p></div>' +
+                '<div class="stg-info-card"><p>📱 Scan a QR code from another device to link it to your account. Open DΞBO CHAT on the other device and scan the QR code shown here.</p></div>' +
                 '<div class="stg-btn-group"><button class="stg-btn stg-btn-primary" id="stg-link-device">Show QR Code</button></div>' +
                 '<div id="stg-device-qr" style="text-align:center;margin-top:12px"></div>' +
             '</div>' +
@@ -1829,7 +1829,7 @@
                 '<div class="stg-info-card"><p><strong>How do I start a chat?</strong></p><p>Click the ➕ button, share your code with someone, or enter their code to connect.</p></div>' +
                 '<div class="stg-info-card"><p><strong>How does the code system work?</strong></p><p>Each user gets a unique 6-digit code. Share this code or scan the QR to connect instantly — no phone number needed.</p></div>' +
                 '<div class="stg-info-card"><p><strong>Are my messages secure?</strong></p><p>Messages are transmitted in real-time via encrypted WebSocket connections. Data is stored locally in your browser.</p></div>' +
-                '<div class="stg-info-card"><p><strong>Can I use on multiple devices?</strong></p><p>Yes! Open SwiftChat on another browser and log in with the same identity, or use the Linked Devices feature.</p></div>' +
+                '<div class="stg-info-card"><p><strong>Can I use on multiple devices?</strong></p><p>Yes! Open DΞBO CHAT on another browser and log in with the same identity, or use the Linked Devices feature.</p></div>' +
                 '<div class="stg-info-card"><p><strong>Where is my data stored?</strong></p><p>Chat data is stored locally in your browser\'s localStorage. Server stores messages temporarily in memory.</p></div>' +
             '</div>' +
             '<div class="stg-section">' +
@@ -1840,7 +1840,7 @@
             '<div class="stg-section">' +
                 '<div class="stg-section-title">About</div>' +
                 '<div class="stg-info-card">' +
-                    '<p><strong>SwiftChat</strong> v1.0.0</p>' +
+                    '<p><strong>DΞBO CHAT</strong> v1.0.0</p>' +
                     '<p>Built with ❤️ using Node.js, Socket.IO & vanilla JS.</p>' +
                     '<p>© 2026 DΞBO. All rights reserved.</p>' +
                 '</div>' +
