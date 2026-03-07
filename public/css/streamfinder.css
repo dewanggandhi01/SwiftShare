@@ -104,7 +104,7 @@ img { display: block; max-width: 100%; }
     min-height: 92vh;
     display: flex; align-items: center; justify-content: center;
     text-align: center; overflow: hidden;
-    padding: calc(80px + 40px) 24px 60px;
+    padding: 10px 24px 60px;
 }
 .sf-hero-bg { position: absolute; inset: 0; overflow: hidden; }
 .sf-hero-glow {
@@ -408,7 +408,7 @@ img { display: block; max-width: 100%; }
    RESPONSIVE
    ═══════════════════════════════════════════════════════════════════ */
 @media (max-width: 768px) {
-    .sf-hero { min-height: 85vh; padding-bottom: 40px; }
+    .sf-hero { min-height: 85vh; padding-top: 10px; padding-bottom: 40px; }
     .sf-hero-title { font-size: clamp(28px, 8vw, 42px); }
     .sf-hero-desc { font-size: 15px; }
     .sf-hero-stats { gap: 16px; }
