@@ -24,4 +24,8 @@ router.get('/streamfinder', (_req, res) => {
     res.sendFile(path.join(PAGES_DIR, 'streamfinder.html'));
 });
 
+router.get('/games', (_req, res) => {
+    res.sendFile(path.join(PAGES_DIR, 'games.html'));
+});
+
 module.exports = router;

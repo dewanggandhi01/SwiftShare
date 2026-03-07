@@ -7,6 +7,7 @@ const chatUsers = new Map();   // userId -> user object
 const chatRooms = new Map();   // roomCode -> room object
 const socketToUser = new Map(); // socketId -> userId
 const randomLobby = new Map();  // oderId -> { userId, username, avatar, socketId, tag, joinedAt }
+const gameRooms = new Map();    // roomCode -> game room object
 
 function generateCode() {
     let code;
@@ -34,6 +35,16 @@ function generateChatCode() {
 
 function generateMsgId() {
     return 'm_' + crypto.randomBytes(6).toString('hex') + Date.now().toString(36);
+}
+
+function generateGameCode() {
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    let code;
+    do {
+        code = '';
+        for (let i = 0; i < 5; i++) code += chars[crypto.randomInt(chars.length)];
+    } while (gameRooms.has(code));
+    return code;
 }
 
 function sanitizeFilename(name) {
@@ -67,10 +78,12 @@ module.exports = {
     chatRooms,
     socketToUser,
     randomLobby,
+    gameRooms,
     generateCode,
     generateLinkId,
     generateChatCode,
     generateMsgId,
+    generateGameCode,
     sanitizeFilename,
     splitText,
 };

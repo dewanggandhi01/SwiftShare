@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, interactive-widget=resizes-content, viewport-fit=cover, maximum-scale=1">
+    <title>DΞBO Games – Play With Friends</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/nav.css">
+    <link rel="stylesheet" href="/css/games.css">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎮</text></svg>">
+</head>
+<body class="dark">
+
+<!-- Top Navigation -->
+<nav class="main-nav" id="main-nav">
+    <div class="nav-inner">
+        <a href="/" class="nav-brand"><span class="brand-icon">Ξ</span> DΞBO</a>
+        <div class="nav-links" id="nav-links">
+            <a href="/" class="nav-link">File Transfer</a>
+            <a href="/pdf" class="nav-link">PDF Toolkit</a>
+            <a href="/chat" class="nav-link">Chat</a>
+            <a href="/translate" class="nav-link">Translate</a>
+            <a href="/streamfinder" class="nav-link">Movies</a>
+            <a href="/games" class="nav-link active">Games</a>
+        </div>
+        <div class="nav-actions">
+            <a href="/" class="btn btn-nav">Get Started</a>
+        </div>
+    </div>
+</nav>
+
+<!-- Warning Banner -->
+<div class="warning-banner" id="warningBanner">
+    <div class="warning-text">⚠ For a better experience, use this website in Incognito Mode. Note: Chat history and preferences will not be saved.</div>
+</div>
+
+<!-- Bottom Navigation (mobile) -->
+<nav class="bottom-nav" aria-label="Mobile navigation">
+    <div class="bottom-nav-inner">
+        <a href="/" class="btm-link">
+            <span class="btm-icon"><svg viewBox="0 0 24 24"><path d="M3 9.5L12 3l9 6.5V20a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9.5z"/><path d="M9 21V12h6v9"/></svg></span>
+            <span class="btm-label">Home</span>
+        </a>
+        <a href="/chat" class="btm-link">
+            <span class="btm-icon"><svg viewBox="0 0 24 24"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg></span>
+            <span class="btm-label">Chat</span>
+        </a>
+        <a href="/games" class="btm-link active">
+            <span class="btm-icon"><svg viewBox="0 0 24 24"><path d="M6 12h4M8 10v4M15 13h.01M18 11h.01"/><rect x="2" y="6" width="20" height="12" rx="2"/></svg></span>
+            <span class="btm-label">Games</span>
+        </a>
+        <a href="/streamfinder" class="btm-link">
+            <span class="btm-icon"><svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg></span>
+            <span class="btm-label">Movies</span>
+        </a>
+        <a href="/#pricing" class="btm-link">
+            <span class="btm-icon"><svg viewBox="0 0 24 24"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg></span>
+            <span class="btm-label">Pricing</span>
+        </a>
+    </div>
+</nav>
+
+<!-- ══════════════════════════════════════════════════════════════
+     SETUP SCREEN
+     ══════════════════════════════════════════════════════════════ -->
+<div id="setup-screen" class="g-setup">
+    <div class="g-hero-bg">
+        <div class="g-glow g-glow-1"></div>
+        <div class="g-glow g-glow-2"></div>
+        <div class="g-glow g-glow-3"></div>
+    </div>
+    <div class="g-setup-inner">
+        <div class="g-setup-card">
+            <div class="g-setup-icon">🎨</div>
+            <h1>Play Games With Friends</h1>
+            <p class="g-setup-sub">No downloads. No sign-up. Just share a link and start playing.</p>
+            <label class="g-label">Your Name</label>
+            <input type="text" class="g-input" id="setup-name" placeholder="Enter a name..." maxlength="20" autocomplete="off">
+            <label class="g-label">Choose Avatar</label>
+            <div class="g-avatar-grid" id="avatar-grid"></div>
+            <div class="g-setup-btns">
+                <button class="g-btn g-btn-primary" id="btn-new-game">🎮 Start New Game</button>
+                <button class="g-btn g-btn-secondary" id="btn-join-game">🔗 Join Game</button>
+            </div>
+            <div class="g-join-section" id="join-section" hidden>
+                <label class="g-label">Enter Room Code</label>
+                <div class="g-code-row">
+                    <input type="text" class="g-input g-code-input" id="join-code" placeholder="ABC123" maxlength="6" autocomplete="off">
+                    <button class="g-btn g-btn-primary g-btn-sm" id="btn-join-go">Join →</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════
+     LOBBY
+     ══════════════════════════════════════════════════════════════ -->
+<div id="lobby-screen" class="g-lobby" hidden>
+    <div class="g-hero-bg">
+        <div class="g-glow g-glow-1"></div>
+        <div class="g-glow g-glow-2"></div>
+    </div>
+    <div class="g-lobby-inner">
+        <div class="g-lobby-card">
+            <div class="g-lobby-header">
+                <h2>🎮 Game Lobby</h2>
+                <button class="g-icon-btn" id="btn-leave-lobby" title="Leave">✕</button>
+            </div>
+            <div class="g-lobby-code-section">
+                <span class="g-lobby-label">Room Code</span>
+                <div class="g-lobby-code" id="lobby-code">------</div>
+                <div class="g-lobby-actions">
+                    <button class="g-btn g-btn-sm g-btn-secondary" id="btn-copy-code">📋 Copy Code</button>
+                    <button class="g-btn g-btn-sm g-btn-secondary" id="btn-copy-link">🔗 Copy Link</button>
+                    <button class="g-btn g-btn-sm g-btn-secondary" id="btn-show-qr">📱 QR Code</button>
+                </div>
+                <div id="qr-container" hidden><canvas id="qr-canvas" width="160" height="160"></canvas></div>
+            </div>
+            <div class="g-lobby-settings" id="lobby-settings">
+                <h3>⚙️ Game Settings</h3>
+                <div class="g-setting-row">
+                    <label>Rounds</label>
+                    <select class="g-select" id="setting-rounds">
+                        <option value="3">3 Rounds</option>
+                        <option value="5" selected>5 Rounds</option>
+                        <option value="8">8 Rounds</option>
+                        <option value="10">10 Rounds</option>
+                    </select>
+                </div>
+                <div class="g-setting-row">
+                    <label>Draw Time</label>
+                    <select class="g-select" id="setting-time">
+                        <option value="60">60 seconds</option>
+                        <option value="80" selected>80 seconds</option>
+                        <option value="90">90 seconds</option>
+                        <option value="120">120 seconds</option>
+                    </select>
+                </div>
+                <div class="g-setting-row">
+                    <label>Word Hints</label>
+                    <select class="g-select" id="setting-hints">
+                        <option value="1">1 hint</option>
+                        <option value="2" selected>2 hints</option>
+                        <option value="0">No hints</option>
+                    </select>
+                </div>
+            </div>
+            <div class="g-lobby-players">
+                <h3>👥 Players <span class="g-player-count" id="player-count">0/8</span></h3>
+                <div class="g-player-list" id="player-list"></div>
+            </div>
+            <div class="g-lobby-chat">
+                <h3>💬 Lobby Chat</h3>
+                <div class="g-lobby-messages" id="lobby-messages"></div>
+                <div class="g-lobby-input-row">
+                    <input type="text" class="g-input" id="lobby-chat-input" placeholder="Type a message..." maxlength="200" autocomplete="off">
+                    <button class="g-btn g-btn-primary g-btn-sm" id="btn-lobby-send">Send</button>
+                </div>
+            </div>
+            <button class="g-btn g-btn-primary g-btn-big" id="btn-start-game" hidden>🚀 Start Game</button>
+        </div>
+    </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════
+     GAME SCREEN
+     ══════════════════════════════════════════════════════════════ -->
+<div id="game-screen" class="g-game" hidden>
+    <!-- Left: Players + Scoreboard -->
+    <aside class="g-panel g-panel-left">
+        <div class="g-scoreboard" id="scoreboard"></div>
+    </aside>
+
+    <!-- Center: Canvas -->
+    <main class="g-center">
+        <div class="g-game-top">
+            <div class="g-round-info">
+                <span id="round-display">Round 1 / 5</span>
+            </div>
+            <div class="g-word-display" id="word-display">
+                <span class="g-word-hint" id="word-hint"></span>
+            </div>
+            <div class="g-timer" id="timer-display">
+                <svg class="g-timer-svg" viewBox="0 0 40 40"><circle class="g-timer-bg" cx="20" cy="20" r="18"/><circle class="g-timer-ring" id="timer-ring" cx="20" cy="20" r="18"/></svg>
+                <span class="g-timer-text" id="timer-text">80</span>
+            </div>
+        </div>
+        <div class="g-canvas-wrap">
+            <canvas id="draw-canvas" width="800" height="600"></canvas>
+        </div>
+        <div class="g-tools" id="draw-tools" hidden>
+            <div class="g-tool-group">
+                <button class="g-tool active" id="tool-pen" title="Pen">✏️</button>
+                <button class="g-tool" id="tool-eraser" title="Eraser">🧹</button>
+                <button class="g-tool" id="tool-fill" title="Fill">🪣</button>
+            </div>
+            <div class="g-tool-group">
+                <input type="color" class="g-color-picker" id="tool-color" value="#ffffff" title="Color">
+                <div class="g-color-presets" id="color-presets"></div>
+            </div>
+            <div class="g-tool-group">
+                <label class="g-size-label">Size</label>
+                <input type="range" class="g-size-slider" id="tool-size" min="2" max="40" value="5">
+            </div>
+            <div class="g-tool-group">
+                <button class="g-tool" id="tool-undo" title="Undo">↩️</button>
+                <button class="g-tool" id="tool-clear" title="Clear">🗑️</button>
+            </div>
+        </div>
+    </main>
+
+    <!-- Right: Chat + Guesses -->
+    <aside class="g-panel g-panel-right">
+        <div class="g-chat-header">💬 Guesses</div>
+        <div class="g-chat-messages" id="game-messages"></div>
+        <div class="g-chat-input-row">
+            <input type="text" class="g-input" id="game-chat-input" placeholder="Type your guess..." maxlength="100" autocomplete="off">
+            <button class="g-btn g-btn-primary g-btn-sm" id="btn-game-send">→</button>
+        </div>
+    </aside>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════
+     ROUND OVERLAY (word selection / round results)
+     ══════════════════════════════════════════════════════════════ -->
+<div class="g-overlay" id="overlay" hidden>
+    <div class="g-overlay-card" id="overlay-card"></div>
+</div>
+
+<script src="/socket.io/socket.io.js"></script>
+<script src="/js/games.js"></script>
+</body>
+</html>
