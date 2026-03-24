@@ -269,6 +269,17 @@
             clearCanvas();
         });
 
+        socket.on('game:undo', function (data) {
+            if (!ctx || !canvas) return;
+            if (!data || !data.dataUrl) { clearCanvas(); return; }
+            var img = new Image();
+            img.onload = function () {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+            };
+            img.src = data.dataUrl;
+        });
+
         socket.on('game:guess', function (data) {
             addGameMsg(data.name, data.text);
         });

@@ -193,6 +193,8 @@
         // Random chat
         $('btn-random-chat').addEventListener('click', openRandomLobby);
         $('btn-random-chat2').addEventListener('click', openRandomLobby);
+        const mobileRandomBtn = $('btn-random-chat-mobile');
+        if (mobileRandomBtn) mobileRandomBtn.addEventListener('click', openRandomLobby);
         $('random-close').addEventListener('click', closeRandomLobby);
         $('btn-go-online').addEventListener('click', toggleGoOnline);
         $('random-overlay').addEventListener('click', e => { if (e.target === $('random-overlay')) closeRandomLobby(); });

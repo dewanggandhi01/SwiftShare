@@ -617,6 +617,18 @@ module.exports = function initSocket(io) {
             socket.to('game:' + data.roomCode).emit('game:clear-canvas');
         });
 
+        socket.on('game:undo', (data) => {
+            if (!data || !data.roomCode) return;
+            const room = gameRooms.get(data.roomCode);
+            if (!room) return;
+            const uid = findPlayerId(socket, room);
+            if (uid !== room.currentDrawer) return;
+            // Relay drawer's canvas snapshot to others
+            socket.to('game:' + data.roomCode).emit('game:undo', {
+                dataUrl: typeof data.dataUrl === 'string' ? data.dataUrl.substring(0, 2_000_000) : null
+            });
+        });
+
         socket.on('game:guess', (data) => {
             if (!data || !data.roomCode || !data.text) return;
             const room = gameRooms.get(data.roomCode);
