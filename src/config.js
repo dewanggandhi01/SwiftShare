@@ -1,7 +1,7 @@
 const path = require('path');
 
 module.exports = {
-    PORT: process.env.PORT || 3000,
+    PORT: process.env.PORT || 4000,
     UPLOAD_DIR: path.join(__dirname, '..', 'uploads'),
     CHAT_UPLOAD_DIR: path.join(__dirname, '..', 'chat-uploads'),
     CODE_EXPIRY_MS: 10 * 60 * 1000,       // 10 minutes

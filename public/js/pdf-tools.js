@@ -6,7 +6,10 @@
        All processing happens in the browser. Files never leave the device.
        ═══════════════════════════════════════════════════════════════════ */
 
-    const { PDFDocument, rgb, degrees, StandardFonts, grayscale } = PDFLib;
+    let PDFDocument, rgb, degrees, StandardFonts, grayscale;
+    if (typeof PDFLib !== 'undefined') {
+        ({ PDFDocument, rgb, degrees, StandardFonts, grayscale } = PDFLib);
+    }
 
     if (window.pdfjsLib) {
         pdfjsLib.GlobalWorkerOptions.workerSrc =
@@ -58,19 +61,32 @@
     };
 
     /* ── DOM ──────────────────────────────────────────────────────── */
-    const grid = document.getElementById('tools-grid');
-    const workspace = document.getElementById('tool-workspace');
-    const wsIcon = document.getElementById('ws-icon');
-    const wsTitle = document.getElementById('ws-title');
-    const wsDesc = document.getElementById('ws-desc');
-    const wsBody = document.getElementById('ws-body');
-    const wsBack = document.getElementById('ws-back');
+    let grid, workspace, wsIcon, wsTitle, wsDesc, wsBody, wsBack;
+
+    function setupDOMElements() {
+        grid = document.getElementById('tools-grid');
+        workspace = document.getElementById('tool-workspace');
+        wsIcon = document.getElementById('ws-icon');
+        wsTitle = document.getElementById('ws-title');
+        wsDesc = document.getElementById('ws-desc');
+        wsBody = document.getElementById('ws-body');
+        wsBack = document.getElementById('ws-back');
+    }
 
     /* ── Init ─────────────────────────────────────────────────────── */
     function init() {
+        setupDOMElements();
+        if (!grid) return;
         renderGrid();
-        wsBack.addEventListener('click', closeWorkspace);
+        if (wsBack) {
+            wsBack.removeEventListener('click', closeWorkspace);
+            wsBack.addEventListener('click', closeWorkspace);
+        }
     }
+
+    window.initPDFToolkit = init;
+    window.closePDFWorkspace = closeWorkspace;
+    window.openPDFTool = openTool;
 
     /* ── Grid ─────────────────────────────────────────────────────── */
     function renderGrid() {
