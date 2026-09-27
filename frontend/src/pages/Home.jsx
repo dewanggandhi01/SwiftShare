@@ -295,17 +295,23 @@ export default function Home() {
       </style>
       
       {/* ─── Two-Column Hero Layout ─── */}
-      <section className="w-full min-h-[calc(100vh-200px)] flex items-center py-4 md:py-0">
-        <div className="w-full flex flex-col-reverse md:flex-row items-center md:items-center gap-8 md:gap-12">
+      <section className="w-full min-h-[calc(100vh-200px)] flex items-start md:items-center pt-0 pb-8 md:py-0 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+        <div className="w-full flex flex-col md:flex-row items-center md:items-center gap-8 md:gap-12">
 
           {/* ── LEFT COLUMN: File Transfer Card (62%) ── */}
           <motion.div
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.1 }}
-            className="w-full md:w-[62%] flex-shrink-0"
+            className="w-full md:w-[62%] flex-shrink-0 flex flex-col"
             id="share-card"
           >
+            {/* Mobile Heading (Visible only on small screens, above the box) */}
+            <h1 className="md:hidden font-grotesk font-extrabold text-[2.25rem] tracking-tight leading-[1.1] text-white mb-5 text-center -mt-8">
+              Share Files<br />
+              <span className="text-gradient">Instantly</span>
+            </h1>
+
             <div className="relative rounded-[20px] border border-white/[0.07] bg-[#0E1117] shadow-[0_16px_48px_rgba(0,0,0,0.35)] overflow-hidden">
                 
                 {/* Animated Glassy Waves Background */}
@@ -365,7 +371,7 @@ export default function Home() {
                           onDragOver={handleDragOver}
                           onDrop={handleDrop}
                           onClick={() => fileInputRef.current?.click()}
-                          className="group border border-dashed border-white/[0.08] hover:border-primary/35 bg-white/[0.015] hover:bg-primary/[0.025] rounded-2xl py-12 px-6 flex flex-col items-center justify-center cursor-pointer transition-all duration-300 select-none"
+                          className="group border border-dashed border-white/[0.08] hover:border-primary/35 bg-white/[0.015] hover:bg-primary/[0.025] rounded-2xl py-8 px-4 md:py-12 md:px-6 flex flex-col items-center justify-center cursor-pointer transition-all duration-300 select-none"
                         >
                           <input
                             type="file"
@@ -648,19 +654,20 @@ export default function Home() {
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.2 }}
-            className="w-full md:w-[38%] flex flex-col items-start text-left md:pl-4"
+            className="w-full md:w-[38%] flex flex-col items-center md:items-start text-center md:text-left md:pl-4"
           >
-            <h1 className="font-grotesk font-extrabold text-[2rem] md:text-[2.75rem] tracking-tight leading-[1.1] text-white mb-3">
+            {/* Desktop Heading (Hidden on mobile) */}
+            <h1 className="hidden md:block font-grotesk font-extrabold text-[2.75rem] tracking-tight leading-[1.1] text-white mb-4">
               Share Files<br />
               <span className="text-gradient">Instantly</span>
             </h1>
 
-            <p className="text-textSec/80 text-sm leading-relaxed mb-6 max-w-[320px]">
+            <p className="text-textSec/80 text-sm leading-relaxed mb-8 max-w-[320px]">
               Secure peer-to-peer file sharing between any device. No sign-up needed.
             </p>
 
             {/* Feature Checklist */}
-            <ul className="flex flex-col gap-2.5 mb-6">
+            <ul className="flex flex-col gap-3 mb-8 w-full max-w-[240px] md:max-w-none items-start">
               {[
                 { icon: <FiShield size={14} />, text: "End-to-End Secure" },
                 { icon: <FiClock size={14} />, text: "Fast Transfers" },

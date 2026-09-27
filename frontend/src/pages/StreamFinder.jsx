@@ -3,6 +3,8 @@ import {
   FiSearch, FiStar, FiExternalLink, FiX, FiFilm, FiTv, FiSmile, 
   FiAward, FiBookmark, FiGrid, FiClock, FiShield, FiBookOpen, FiZap
 } from "react-icons/fi";
+import MovieDiscovery from "../components/MovieDiscovery";
+import { MOVIES } from "../data/moviesData";
 
 const SITES = [
   // 🎬 MOVIES & TV SHOWS
@@ -73,18 +75,114 @@ const SITES = [
   { id: 'mangaxo',      name: 'MangaXO',      url: 'https://mangaxo.com/home',         color: '#00d4aa', rank: 61, category: 'Manga',      tags: ['Manga', 'Reader'], recommended: false, dateAdded: '2026-07-10', popularity: 85 },
 ];
 
+const PlatformLogo = ({ name, domain, color }) => {
+  const [imgError, setImgError] = useState(false);
+  const initial = name.charAt(0).toUpperCase();
+  // Using Google's Favicon API which successfully scrapes icons from streaming sites
+  const logoUrl = `https://www.google.com/s2/favicons?domain=${domain}&sz=128`;
+
+  if (imgError) {
+    return (
+      <div
+        className="w-full h-full flex items-center justify-center font-bold text-white text-[14px] select-none rounded-[8px]"
+        style={{ backgroundColor: color }}
+      >
+        {initial}
+      </div>
+    );
+  }
+
+  return (
+    <img
+      src={logoUrl}
+      alt={`${name} logo`}
+      onError={() => setImgError(true)}
+      className="w-full h-full object-contain drop-shadow-md rounded-[8px]"
+      loading="lazy"
+    />
+  );
+};
+
 const CATEGORIES_LIST = [
-  { key: "all", name: "All Directories", icon: FiGrid },
   { key: "recommended", name: "Best Quality ⭐", icon: FiZap },
-  { key: "Movies", name: "Movies", icon: FiFilm },
+  { key: "Movies", name: "Movies & Shows", icon: FiFilm },
   { key: "TV Shows", name: "TV Shows", icon: FiTv },
   { key: "Anime", name: "Anime", icon: FiSmile },
   { key: "Manga", name: "Manga", icon: FiBookOpen },
   { key: "favorites", name: "Bookmarks", icon: FiBookmark },
 ];
 
+const HeroCollageBackground = () => {
+  // Memoize the grid layout so it doesn't shuffle when user types in the search bar
+  const gridData = useMemo(() => {
+    const postersList = [];
+    const pool = [...MOVIES, ...MOVIES, ...MOVIES].sort(() => Math.random() - 0.5);
+    for (let i = 0; i < 42; i++) {
+      postersList.push(pool[i % pool.length]?.poster);
+    }
+
+    const rows = [];
+    for (let rowIndex = 0; rowIndex < 6; rowIndex++) {
+      const cols = [];
+      for (let colIndex = 0; colIndex < 8; colIndex++) {
+        const poster = postersList[(rowIndex * 8 + colIndex) % postersList.length];
+        const scale = 0.95 + Math.random() * 0.15;
+        const yOffset = Math.random() * 10 - 5;
+        cols.push({ id: `${rowIndex}-${colIndex}`, poster, scale, yOffset });
+      }
+      rows.push(cols);
+    }
+    return rows;
+  }, []);
+
+  return (
+    <div className="absolute inset-0 z-0 overflow-hidden bg-[#0A0B10]">
+      {/* The Poster Grid Collage */}
+      <div className="absolute opacity-[0.55] pointer-events-none flex flex-col gap-3 -top-[40%] -left-[10%] w-[120%] h-[180%] transform -rotate-2 scale-[1.05]">
+        {gridData.map((row, rowIndex) => (
+          <div key={rowIndex} className={`flex gap-3 w-full justify-center ${rowIndex % 2 === 0 ? 'ml-[-40px]' : 'ml-[40px]'}`}>
+            {row.map((col) => {
+              if (!col.poster) return null;
+              
+              return (
+                <div 
+                  key={col.id} 
+                  className="w-[110px] sm:w-[130px] md:w-[150px] aspect-[2/3] shrink-0 rounded-xl overflow-hidden shadow-2xl border border-white/[0.08] bg-white/[0.02]"
+                  style={{ transform: `scale(${col.scale}) translateY(${col.yOffset}px)` }}
+                >
+                  <img 
+                    src={col.poster} 
+                    alt="" 
+                    className="w-full h-full object-cover brightness-110 contrast-125 saturate-110 transition-opacity duration-300" 
+                    loading="lazy" 
+                    onError={(e) => { e.currentTarget.style.opacity = '0'; }}
+                  />
+                </div>
+              );
+            })}
+          </div>
+        ))}
+      </div>
+
+      {/* Cinematic Overlays */}
+      {/* 1. Base dark overlay (Reduced by ~40%) */}
+      <div className="absolute inset-0 bg-[#111218]/25" />
+      
+      {/* 2. Left side text readability gradient (Less aggressive) */}
+      <div className="absolute inset-0 bg-gradient-to-r from-[#111218]/90 via-[#111218]/50 to-transparent w-[80%]" />
+      
+      {/* 3. Bottom fade gradient */}
+      <div className="absolute inset-0 bg-gradient-to-t from-[#111218]/90 via-[#111218]/30 to-transparent" />
+      
+      {/* 4. Vignette edges (Lighter) */}
+      <div className="absolute inset-0 pointer-events-none" style={{ boxShadow: "inset 0 0 100px rgba(0,0,0,0.6)" }} />
+    </div>
+  );
+};
+
 export default function StreamFinder() {
-  const [activeCategory, setActiveCategory] = useState("all");
+  const [showDiscovery, setShowDiscovery] = useState(false);
+  const [activeCategory, setActiveCategory] = useState("recommended");
   const [searchQuery, setSearchQuery] = useState("");
   const [sortBy, setSortBy] = useState("popular"); // "popular" | "newest" | "alpha"
   const [favorites, setFavorites] = useState([]);
@@ -117,7 +215,7 @@ export default function StreamFinder() {
 
   // Category counts
   const categoryCounts = useMemo(() => {
-    const counts = { all: SITES.length, favorites: favorites.length, recommended: 0 };
+    const counts = { favorites: favorites.length, recommended: 0 };
     SITES.forEach((site) => {
       counts[site.category] = (counts[site.category] || 0) + 1;
       if (site.recommended) counts.recommended += 1;
@@ -135,7 +233,6 @@ export default function StreamFinder() {
         site.category.toLowerCase().includes(q) ||
         site.tags.some((t) => t.toLowerCase().includes(q));
 
-      if (activeCategory === "all") return matchesSearch;
       if (activeCategory === "recommended") return matchesSearch && site.recommended;
       if (activeCategory === "favorites") return matchesSearch && favorites.includes(site.name);
       return matchesSearch && site.category === activeCategory;
@@ -153,52 +250,41 @@ export default function StreamFinder() {
   }, [searchQuery, activeCategory, favorites, sortBy]);
 
   return (
-    <div className="relative w-full max-w-[1720px] mx-auto pt-0 pb-16 px-0 md:px-2">
-      
-      <style>
-        {`
-          @keyframes wave-spin {
-            0% { transform: rotate(0deg) scale(1); }
-            50% { transform: rotate(180deg) scale(1.1); }
-            100% { transform: rotate(360deg) scale(1); }
-          }
-          .glassy-wave-1 {
-            position: absolute;
-            top: -40%;
-            left: -10%;
-            width: 90%;
-            height: 180%;
-            background: linear-gradient(135deg, rgba(124,92,255,0.45) 0%, transparent 70%);
-            border-radius: 40% 60% 60% 40%;
-            animation: wave-spin 16s linear infinite;
-            filter: blur(25px);
-            pointer-events: none;
-          }
-          .glassy-wave-2 {
-            position: absolute;
-            bottom: -40%;
-            right: -10%;
-            width: 85%;
-            height: 180%;
-            background: linear-gradient(135deg, rgba(59,130,246,0.35) 0%, transparent 70%);
-            border-radius: 60% 40% 40% 60%;
-            animation: wave-spin 20s linear infinite reverse;
-            filter: blur(30px);
-            pointer-events: none;
-          }
-        `}
-      </style>
-
-      {/* ── 1. TOP DASHBOARD SECTION (220px Height Card Edge to Edge) ── */}
-      <section className="relative w-full min-h-[200px] rounded-[24px] bg-[#111218] border border-white/[0.08] mb-6 overflow-hidden shadow-2xl">
+    <>
+    {!showDiscovery && (
+      <div className="relative w-full max-w-[1720px] mx-auto pt-0 pb-16 px-0 md:px-2">
+        <style>
+          {`
+            @keyframes gradient-xy {
+              0%, 100% { background-position: 0% 50%; }
+              50% { background-position: 100% 50%; }
+            }
+            @keyframes wavy-border {
+              0% { border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%; }
+              25% { border-radius: 40% 60% 50% 50% / 40% 50% 50% 60%; }
+              50% { border-radius: 30% 60% 70% 40% / 50% 60% 30% 60%; }
+              75% { border-radius: 50% 40% 40% 60% / 60% 40% 60% 40%; }
+              100% { border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%; }
+            }
+            @keyframes slow-float {
+              0%, 100% { transform: translateY(0px); }
+              50% { transform: translateY(-3px); }
+            }
+            .animate-wavy-gradient {
+              background-size: 200% 200%;
+              animation: 
+                gradient-xy 3s ease infinite,
+                wavy-border 6s ease-in-out infinite,
+                slow-float 4s ease-in-out infinite;
+            }
+          `}
+        </style>
         
-        {/* Animated Glassy Waves Background */}
-        <div className="absolute inset-0 z-0 bg-gradient-to-br from-[#1E182D]/95 to-[#111218]/98">
-          <div className="glassy-wave-1" />
-          <div className="glassy-wave-2" />
-          {/* Glass Overlay Layer to make it feel glassy */}
-          <div className="absolute inset-0 backdrop-blur-[24px] bg-white/[0.02]" />
-        </div>
+        {/* ── 1. TOP DASHBOARD SECTION ── */}
+        <section className="relative w-full min-h-[200px] rounded-[24px] bg-[#111218] border border-white/[0.08] mb-6 overflow-hidden shadow-2xl">
+        
+        {/* Premium Cinematic Poster Collage Background */}
+        <HeroCollageBackground />
 
         {/* Inner Content Container */}
         <div className="relative z-10 w-full h-full p-5 md:p-7 flex flex-col md:flex-row items-start md:items-center justify-between gap-6 select-none">
@@ -207,10 +293,24 @@ export default function StreamFinder() {
             <h1 className="font-sans font-bold text-[34px] sm:text-[42px] md:text-[48px] text-white tracking-tight leading-[1.1] mb-2 drop-shadow-sm">
               Movie & Media Directory
             </h1>
-            <p className="text-[#B5BAC7] text-[14px] sm:text-[16px] leading-relaxed font-normal">
-              Discover 60+ verified streaming & manga directories from around the world.<br className="hidden sm:inline" />
+            <p className="text-[#B5BAC7] text-[14px] sm:text-[16px] leading-relaxed font-normal mb-5">
+              Discover {SITES.length} verified streaming & manga directories from around the world.<br className="hidden sm:inline" />
               Fast search, bookmarks, categories and ad-free sources.
             </p>
+
+            {/* Integrated Movie Discovery CTA */}
+            <button
+              onClick={() => setShowDiscovery(!showDiscovery)}
+              className="group relative overflow-hidden flex items-center justify-center bg-gradient-to-r from-[#7C5CFF] via-[#5c3ce6] to-[#7C5CFF] animate-wavy-gradient text-white px-10 py-3.5 text-[14px] font-bold tracking-wider transition-all duration-300 shadow-[0_0_30px_rgba(124,92,255,0.6)] hover:shadow-[0_0_50px_rgba(124,92,255,0.8)]"
+            >
+              <div className="absolute inset-0 w-full h-full pointer-events-none overflow-hidden animate-wavy-gradient">
+                <div className="absolute top-0 left-[-100%] w-[50%] h-full bg-gradient-to-r from-transparent via-white/40 to-transparent skew-x-[30deg] group-hover:left-[200%] transition-all duration-700 ease-in-out" />
+              </div>
+              <span className="relative z-10 flex items-center gap-2">
+                <FiFilm size={16} className={showDiscovery ? "rotate-180 transition-transform duration-300" : "transition-transform duration-300"} />
+                {showDiscovery ? "Back to Directory" : "Movie Discovery →"}
+              </span>
+            </button>
           </div>
 
           {/* Right Dashboard Stats Cards */}
@@ -221,7 +321,7 @@ export default function StreamFinder() {
                 <span className="text-[10.5px] font-semibold text-[#9AA1AE] uppercase tracking-wide">Directories</span>
               </div>
               <div className="bg-white/[0.03] backdrop-blur-md border border-white/[0.08] px-4 py-2.5 rounded-2xl flex flex-col items-center min-w-[95px] shadow-lg">
-                <span className="text-xl font-bold font-mono text-[#7C5CFF]">4</span>
+                <span className="text-xl font-bold font-mono text-[#7C5CFF]">{new Set(SITES.map(s => s.category)).size}</span>
                 <span className="text-[10.5px] font-semibold text-[#9AA1AE] uppercase tracking-wide">Media Types</span>
               </div>
               <div className="bg-white/[0.03] backdrop-blur-md border border-white/[0.08] px-4 py-2.5 rounded-2xl flex flex-col items-center min-w-[95px] shadow-lg">
@@ -241,11 +341,10 @@ export default function StreamFinder() {
             </div>
           </div>
         </div>
+        </section>
 
-      </section>
-
-      {/* ── 2. MAIN CONTENT SPLIT (Sidebar 18% | Content 82%) ── */}
-      <div className="w-full flex flex-col lg:flex-row items-start gap-6 lg:gap-7">
+        {/* ── 2. MAIN CONTENT SPLIT (Sidebar 18% | Content 82%) ── */}
+        <div className="w-full flex flex-col lg:flex-row items-start gap-6 lg:gap-7 animate-in fade-in duration-500">
         
         {/* ── LEFT SIDEBAR (18% Width, Sticky Top, Zero Left Gap) ── */}
         <aside className="w-full lg:w-[18%] min-w-[210px] flex-shrink-0 lg:sticky lg:top-[75px] flex flex-col gap-5 select-none pl-0">
@@ -292,7 +391,7 @@ export default function StreamFinder() {
               <FiShield className="text-[#7C5CFF]" size={13} /> Verified Links
             </span>
             <p className="text-[#9AA1AE] px-3 text-[12px] leading-relaxed">
-              All 60+ directories are verified for uptime, quality streams, and safe reader engines.
+              All {SITES.length} directories are verified for uptime, quality streams, and safe reader engines.
             </p>
           </div>
 
@@ -308,7 +407,7 @@ export default function StreamFinder() {
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search 60+ movies, anime or manga sites by title, domain or tag..."
+              placeholder={`Search ${SITES.length} movies, anime or manga sites by title, domain or tag...`}
               className="w-full bg-transparent border-none text-white text-sm focus:outline-none placeholder:text-[#6B7280] font-normal"
             />
             {searchQuery && (
@@ -358,91 +457,81 @@ export default function StreamFinder() {
             </div>
           </div>
 
-          {/* Directory Cards Grid (5-6 columns desktop responsive) */}
+          {/* Directory Cards Grid (Compact Horizontal Design) */}
           {filteredSites.length === 0 ? (
             <div className="w-full bg-[#13151D] border border-white/[0.08] rounded-[22px] p-10 text-center flex flex-col items-center my-6">
               <FiSearch size={36} className="text-[#9AA1AE] mb-3 animate-pulse" />
               <h3 className="text-white font-semibold text-[18px] mb-1 tracking-tight">No directories found</h3>
               <p className="text-[#9AA1AE] text-xs leading-relaxed mb-4">Try adjusting your search query or category filters.</p>
               <button
-                onClick={() => { setSearchQuery(""); setActiveCategory("all"); }}
+                onClick={() => { setSearchQuery(""); setActiveCategory("recommended"); }}
                 className="px-4 py-2 bg-white/[0.05] border border-white/[0.08] text-xs font-semibold text-white rounded-xl hover:border-[#7C5CFF] transition-colors"
               >
                 Reset Filters
               </button>
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-[20px]">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7 gap-3 sm:gap-4">
               {filteredSites.map((site) => {
                 const isFav = favorites.includes(site.name);
-                const initial = site.name.charAt(0).toUpperCase();
 
                 return (
                   <div
                     key={site.id}
-                    className="group bg-[#13151D] border border-white/[0.08] hover:border-[#7C5CFF] hover:bg-[#191B24] rounded-[22px] p-4 flex flex-col justify-between h-[185px] transition-all duration-200 relative select-none hover:-translate-y-1"
-                    style={{ borderTop: `3px solid ${site.color}` }}
+                    className="group bg-[#0D0D12] border border-white/[0.05] hover:border-white/[0.12] rounded-[14px] p-2.5 flex flex-col justify-between h-[96px] w-full transition-all duration-200 relative select-none hover:-translate-y-[2px]"
                   >
-                    {/* Top Row: Logo Badge + Bookmark Star */}
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <div
-                          className="w-9 h-9 rounded-xl flex items-center justify-center font-bold text-white text-sm shadow-md"
-                          style={{ backgroundColor: site.color }}
-                        >
-                          {initial}
-                        </div>
-                        {site.recommended && (
-                          <span className="px-1.5 py-0.5 bg-yellow-500/10 border border-yellow-500/20 text-yellow-400 text-[9px] font-bold rounded uppercase">
-                            Best
-                          </span>
-                        )}
-                      </div>
+                    {/* Top Accent line or Subtle Glow */}
+                    <div className="absolute top-0 left-0 right-0 h-[2px] opacity-0 group-hover:opacity-100 transition-opacity rounded-t-[14px]" style={{ backgroundColor: site.color, boxShadow: `0 0 10px ${site.color}` }} />
+
+                    {/* Top Row: Trusted Badge + Bookmark Star */}
+                    <div className="flex items-start justify-between">
+                      {site.recommended ? (
+                        <span className="px-1.5 py-[2px] bg-[#7C5CFF]/15 text-[#7C5CFF] text-[8px] font-bold rounded-sm uppercase tracking-widest leading-none">
+                          Trusted
+                        </span>
+                      ) : (
+                        <div />
+                      )}
 
                       <button
                         onClick={() => toggleFavorite(site.name)}
-                        className={`p-1.5 rounded-lg transition-colors ${
-                          isFav ? "text-yellow-400" : "text-[#9AA1AE] hover:text-white"
+                        className={`p-1 -mt-1 -mr-1 rounded-md transition-colors ${
+                          isFav ? "text-yellow-400" : "text-[#9AA1AE] hover:text-[#7C5CFF]"
                         }`}
                         title={isFav ? "Remove bookmark" : "Add bookmark"}
                       >
-                        <FiStar size={16} fill={isFav ? "currentColor" : "none"} />
+                        <FiStar size={12} fill={isFav ? "currentColor" : "none"} />
                       </button>
                     </div>
 
-                    {/* Middle Details: Name, Ranking, Domain, Tags */}
-                    <div>
-                      <div className="flex items-center justify-between mb-0.5">
-                        <h3 className="text-white font-semibold text-[15.5px] tracking-tight truncate max-w-[125px]">
-                          {site.name}
-                        </h3>
-                        <span className="text-[10px] font-mono text-[#7C5CFF] bg-[#7C5CFF]/10 px-1.5 py-0.5 rounded-md font-bold">
-                          #{site.rank}
-                        </span>
+                    {/* Middle: Logo + Name + Rank */}
+                    <div className="flex items-center gap-2.5 mt-1 px-0.5">
+                      <div className="w-[32px] h-[32px] shrink-0 rounded-[8px] overflow-hidden flex items-center justify-center bg-white/[0.02] group-hover:scale-105 transition-transform duration-200">
+                        <PlatformLogo name={site.name} domain={getDomain(site.url)} color={site.color} />
                       </div>
-
-                      <div className="text-[11px] text-[#9AA1AE] truncate mb-2 font-mono">
-                        {getDomain(site.url)}
-                      </div>
-
-                      {/* Tag Chips */}
-                      <div className="flex flex-wrap gap-1">
-                        {site.tags.map((tag) => (
-                          <span key={tag} className="px-2 py-0.5 bg-white/[0.04] text-[10px] text-textSec font-medium rounded-md">
-                            {tag}
-                          </span>
-                        ))}
+                      
+                      <div className="flex flex-col overflow-hidden leading-tight">
+                        <div className="flex items-center gap-1.5">
+                          <h3 className="text-white font-bold text-[13px] tracking-tight truncate">
+                            {site.name}
+                          </h3>
+                          {site.rank && (
+                            <span className="text-[8px] font-mono text-[#7C5CFF] bg-[#7C5CFF]/15 px-1 py-[1px] rounded-[3px] font-bold flex-shrink-0">
+                              #{site.rank}
+                            </span>
+                          )}
+                        </div>
                       </div>
                     </div>
 
-                    {/* Bottom CTA Visit Directory Button */}
+                    {/* Bottom: Domain Link */}
                     <a
                       href={site.url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="w-full py-2 bg-white/[0.04] group-hover:bg-[#7C5CFF] border border-white/[0.08] group-hover:border-[#7C5CFF] text-white text-xs font-semibold rounded-xl flex items-center justify-center gap-1.5 transition-colors"
+                      className="flex items-center gap-1 text-[9px] text-[#8A8F9E] hover:text-[#7C5CFF] transition-colors truncate font-mono mt-1 pl-[42px]"
                     >
-                      Visit Directory <FiExternalLink size={13} />
+                      <FiExternalLink size={9} className="shrink-0" /> <span className="truncate">{getDomain(site.url)}</span>
                     </a>
                   </div>
                 );
@@ -451,9 +540,14 @@ export default function StreamFinder() {
           )}
 
         </main>
-
       </div>
-
     </div>
+    )}
+
+    {/* Movie Discovery takes over the full viewport when active */}
+    {showDiscovery && (
+      <MovieDiscovery onBack={() => setShowDiscovery(false)} />
+    )}
+    </>
   );
 }

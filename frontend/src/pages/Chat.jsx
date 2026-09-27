@@ -428,10 +428,16 @@ export default function Chat() {
     <div className="relative w-full max-w-[1600px] mx-auto pt-4 pb-16 px-4 md:px-8 lg:px-12 xl:px-16">
       
       {/* ─── Two-Column Split Layout (Left 65% | Right 35%) ─── */}
-      <section className="w-full flex flex-col-reverse lg:flex-row items-start justify-between gap-8 md:gap-12">
+      <section className="w-full flex flex-col lg:flex-row items-start justify-between gap-8 md:gap-12">
 
         {/* ── LEFT COLUMN: Profile Creation or Active Chat Viewport (65%) ── */}
-        <div className="w-full lg:w-[65%] flex-shrink-0">
+        <div className="w-full lg:w-[65%] flex-shrink-0 flex flex-col">
+          
+          {/* Mobile Heading (Visible only on small screens, above the box) */}
+          <h1 className="lg:hidden font-sans font-extrabold text-[28px] tracking-tight leading-[1.1] text-white mb-5 text-center -mt-2">
+            Meet New People <br />
+            <span className="text-[#8B7DFF]">Instantly</span>
+          </h1>
           
           {/* PROFILE CREATION CARD (When not registered) */}
           {!me && (
@@ -701,7 +707,7 @@ export default function Chat() {
         <div className="w-full lg:w-[35%] flex flex-col items-start text-left lg:pl-4">
           
           {/* Heading */}
-          <h1 className="font-sans font-extrabold text-[28px] md:text-[34px] tracking-tight leading-[1.1] text-white mb-3">
+          <h1 className="hidden lg:block font-sans font-extrabold text-[34px] tracking-tight leading-[1.1] text-white mb-3">
             Meet New People <br />
             <span className="text-[#8B7DFF]">Instantly</span>
           </h1>

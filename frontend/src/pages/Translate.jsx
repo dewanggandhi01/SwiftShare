@@ -402,10 +402,17 @@ export default function Translate() {
       </style>
 
       {/* ─── Two-Column Layout (Matching File Transfer) ─── */}
-      <section className="w-full flex flex-col-reverse md:flex-row items-start justify-between gap-8 md:gap-12">
+      <section className="w-full flex flex-col md:flex-row items-start justify-between gap-8 md:gap-12">
 
         {/* ─── LEFT COLUMN: Translation Workspace Card (70%) ─── */}
-        <div className="w-full md:w-[70%] flex-shrink-0">
+        <div className="w-full md:w-[70%] flex-shrink-0 flex flex-col">
+          
+          {/* Mobile Heading (Visible only on small screens, above the box) */}
+          <h1 className="md:hidden font-sans font-extrabold text-[2rem] tracking-tight leading-[1.1] text-white mb-5 text-center -mt-2">
+            Translate<br />
+            <span className="text-[#6C63FF]">Instantly</span>
+          </h1>
+
           <div className="relative rounded-[24px] border border-white/[0.06] bg-[#111216] shadow-xl overflow-hidden">
             
             {/* Animated Glassy Waves Background */}
@@ -713,7 +720,7 @@ export default function Translate() {
         <div className="w-full md:w-[30%] flex flex-col items-start text-left md:pl-2">
           
           {/* Heading */}
-          <h1 className="font-sans font-extrabold text-[2rem] md:text-[2.75rem] tracking-tight leading-[1.1] text-white mb-3">
+          <h1 className="hidden md:block font-sans font-extrabold text-[2.75rem] tracking-tight leading-[1.1] text-white mb-3">
             Translate<br />
             <span className="text-[#6C63FF]">Instantly</span>
           </h1>
